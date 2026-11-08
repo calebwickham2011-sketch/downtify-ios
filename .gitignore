@@ -55,3 +55,8 @@ replay_pid*
 
 # Generated using ignr.py - github.com/Antrikshy/ignr.py
 
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
+DerivedData/

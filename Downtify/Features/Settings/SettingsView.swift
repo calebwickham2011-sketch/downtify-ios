@@ -3,8 +3,8 @@ import SwiftUI
 public struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var theme = ThemeManager.shared
+    @ObservedObject var sessionStore = KeychainSessionStore.shared
     
-    @State private var serverAddress = "http://192.168.1.100:8000"
     @State private var streamQuality = "Automatic (High)"
     @State private var loudnessNormalization = "Normal"
     
@@ -15,30 +15,47 @@ public struct SettingsView: View {
             List {
                 // Server Connection
                 Section("Downtify Server") {
-                    HStack {
-                        Image(systemName: DowntifyIcons.server)
-                            .foregroundColor(DowntifyColor.primary)
-                            .frame(width: 28)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Connected Server")
-                                .font(DowntifyFont.bodyBold)
-                            Text(serverAddress)
-                                .font(DowntifyFont.caption)
-                                .foregroundColor(DowntifyColor.textSecondary)
+                    if let session = sessionStore.session {
+                        HStack {
+                            Image(systemName: DowntifyIcons.server)
+                                .foregroundColor(DowntifyColor.primary)
+                                .frame(width: 28)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(session.serverName.isEmpty ? "Connected Server" : session.serverName)
+                                    .font(DowntifyFont.bodyBold)
+                                Text(session.baseUrl)
+                                    .font(DowntifyFont.caption)
+                                    .foregroundColor(DowntifyColor.textSecondary)
+                                if !session.username.isEmpty {
+                                    Text("Account: \(session.username)")
+                                        .font(DowntifyFont.caption)
+                                        .foregroundColor(DowntifyColor.primary)
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            Circle()
+                                .fill(Color.green)
+                                .frame(width: 8, height: 8)
                         }
-                        
-                        Spacer()
-                        
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 8, height: 8)
+                    } else {
+                        Text("Not connected to a server")
+                            .font(DowntifyFont.body)
+                            .foregroundColor(DowntifyColor.textSecondary)
                     }
                     
                     Button("Switch Server / Re-pair") {
-                        // Triggers Phase 2 onboarding
+                        sessionStore.clear(reason: .user)
+                        dismiss()
                     }
                     .foregroundColor(DowntifyColor.primary)
+                    
+                    Button("Sign Out", role: .destructive) {
+                        sessionStore.clear(reason: .user)
+                        dismiss()
+                    }
                 }
                 
                 // Appearance
