@@ -2,7 +2,7 @@ import SwiftUI
 
 public struct HomeView: View {
     @ObservedObject var theme = ThemeManager.shared
-    @ObservedObject var library = LibraryService.shared
+    @ObservedObject var library = LibraryRepository.shared
     @ObservedObject var sessionStore = KeychainSessionStore.shared
     
     public init() {}
@@ -26,7 +26,7 @@ public struct HomeView: View {
                         }
                         Spacer()
                         
-                        if library.isLoading {
+                        if library.isSyncing {
                             ProgressView()
                                 .tint(DowntifyColor.primary)
                         }
@@ -34,7 +34,7 @@ public struct HomeView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
                     
-                    // Quick Picks Grid (top playlists or albums)
+                    // Quick Picks Grid
                     if !quickPicks.isEmpty {
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                             ForEach(quickPicks, id: \.id) { pick in
@@ -121,7 +121,7 @@ public struct HomeView: View {
                                             AuthenticatedArtworkImage(
                                                 url: coverUrl,
                                                 size: 110,
-                                                cornerRadius: 55 // Circular avatar
+                                                cornerRadius: 55
                                             )
                                             
                                             Text(artist.name)
@@ -138,15 +138,15 @@ public struct HomeView: View {
                     }
                     
                     // Empty state if server has no music yet
-                    if library.tracks.isEmpty && !library.isLoading {
+                    if library.tracks.isEmpty && !library.isSyncing {
                         VStack(spacing: 12) {
                             Image(systemName: "music.note.list")
                                 .font(.system(size: 48))
                                 .foregroundColor(DowntifyColor.textSecondary)
-                            Text("No tracks found on server")
+                            Text("No tracks found")
                                 .font(DowntifyFont.sectionTitle)
                                 .foregroundColor(DowntifyColor.textPrimary)
-                            Text("Pull down to refresh or check your music folders.")
+                            Text("Pull down to sync with your Downtify server.")
                                 .font(DowntifyFont.caption)
                                 .foregroundColor(DowntifyColor.textSecondary)
                         }
@@ -159,13 +159,13 @@ public struct HomeView: View {
             }
             .background(theme.currentBackground.ignoresSafeArea())
             .refreshable {
-                await library.refreshLibrary()
+                await library.syncWithServer(forceFull: true)
             }
             .onAppear {
-                library.startLiveSync()
+                LiveUpdatesClient.shared.start()
                 if library.tracks.isEmpty {
                     Task {
-                        await library.refreshLibrary()
+                        await library.syncWithServer()
                     }
                 }
             }
@@ -187,16 +187,13 @@ public struct HomeView: View {
     
     private var quickPicks: [QuickPickItem] {
         var items: [QuickPickItem] = []
-        // Add Liked Songs
         if !library.likedTrackIds.isEmpty {
             items.append(QuickPickItem(id: "liked_songs", title: "Liked Songs", coverUrl: nil))
         }
-        // Add top playlists
         for p in library.playlists.prefix(3) {
             let coverUrl = DowntifyAPI.shared.playlistCoverUrl(path: p.cover)
             items.append(QuickPickItem(id: "playlist_\(p.name)", title: p.title, coverUrl: coverUrl))
         }
-        // Add top albums if space left
         for a in library.albums.prefix(6 - items.count) {
             let coverUrl = a.coverTrackId.flatMap { DowntifyAPI.shared.coverUrl(trackId: $0, size: 150) }
             items.append(QuickPickItem(id: "album_\(a.id)", title: a.title, coverUrl: coverUrl))
