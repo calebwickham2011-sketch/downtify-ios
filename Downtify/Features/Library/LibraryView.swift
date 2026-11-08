@@ -2,16 +2,9 @@ import SwiftUI
 
 public struct LibraryView: View {
     @ObservedObject var theme = ThemeManager.shared
+    @ObservedObject var library = LibraryService.shared
     @State private var selectedFilter = "All"
-    let filters = ["All", "Playlists", "Albums", "Artists", "Downloaded"]
-    
-    let libraryItems: [(String, String, String, Color)] = [
-        ("Liked Songs", "Playlist • 84 songs", DowntifyIcons.heartFill, DowntifyColor.liked),
-        ("Daily Mix 1", "Playlist • Downtify", "music.note.list", .purple),
-        ("Starred Albums", "Collection • 12 albums", "square.stack.fill", .blue),
-        ("Offline Cache", "Downloaded • 35 tracks", DowntifyIcons.downloadDone, DowntifyColor.primary),
-        ("Podcasts", "Shows • 4 subscriptions", "mic.fill", .orange)
-    ]
+    let filters = ["All", "Playlists", "Albums", "Artists"]
     
     public init() {}
     
@@ -36,35 +29,132 @@ public struct LibraryView: View {
                 // Library List
                 ScrollView {
                     LazyVStack(spacing: 12) {
-                        ForEach(libraryItems, id: \.0) { item in
+                        // Liked Songs row (shown when All or Playlists selected)
+                        if selectedFilter == "All" || selectedFilter == "Playlists" {
                             HStack(spacing: 14) {
                                 RoundedRectangle(cornerRadius: DowntifyShape.coverRadius, style: .continuous)
-                                    .fill(item.3.gradient)
+                                    .fill(DowntifyColor.liked.gradient)
                                     .frame(width: 56, height: 56)
                                     .overlay(
-                                        Image(systemName: item.2)
+                                        Image(systemName: DowntifyIcons.heartFill)
                                             .font(.system(size: 24))
                                             .foregroundColor(.white)
                                     )
                                 
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(item.0)
+                                    Text("Liked Songs")
                                         .font(DowntifyFont.cardTitle)
                                         .foregroundColor(DowntifyColor.textPrimary)
                                     
-                                    Text(item.1)
+                                    Text("Playlist • \(library.likedTrackIds.count) songs")
                                         .font(DowntifyFont.cardSubtitle)
                                         .foregroundColor(DowntifyColor.textSecondary)
                                 }
                                 
                                 Spacer()
                                 
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(DowntifyColor.textTertiary)
+                                Image(systemName: "pin.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(DowntifyColor.primary)
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 4)
+                        }
+                        
+                        // Playlists
+                        if selectedFilter == "All" || selectedFilter == "Playlists" {
+                            ForEach(library.playlists) { playlist in
+                                HStack(spacing: 14) {
+                                    let coverUrl = DowntifyAPI.shared.playlistCoverUrl(path: playlist.cover)
+                                    AuthenticatedArtworkImage(
+                                        url: coverUrl,
+                                        size: 56,
+                                        cornerRadius: DowntifyShape.coverRadius
+                                    )
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(playlist.title)
+                                            .font(DowntifyFont.cardTitle)
+                                            .foregroundColor(DowntifyColor.textPrimary)
+                                        
+                                        Text("Playlist • \(playlist.trackIds.count) tracks")
+                                            .font(DowntifyFont.cardSubtitle)
+                                            .foregroundColor(DowntifyColor.textSecondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(DowntifyColor.textTertiary)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 4)
+                            }
+                        }
+                        
+                        // Albums
+                        if selectedFilter == "All" || selectedFilter == "Albums" {
+                            ForEach(library.albums) { album in
+                                HStack(spacing: 14) {
+                                    let coverUrl = album.coverTrackId.flatMap { DowntifyAPI.shared.coverUrl(trackId: $0, size: 150) }
+                                    AuthenticatedArtworkImage(
+                                        url: coverUrl,
+                                        size: 56,
+                                        cornerRadius: DowntifyShape.coverRadius
+                                    )
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(album.title)
+                                            .font(DowntifyFont.cardTitle)
+                                            .foregroundColor(DowntifyColor.textPrimary)
+                                        
+                                        Text("Album • \(album.artist) • \(album.trackCount) tracks")
+                                            .font(DowntifyFont.cardSubtitle)
+                                            .foregroundColor(DowntifyColor.textSecondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(DowntifyColor.textTertiary)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 4)
+                            }
+                        }
+                        
+                        // Artists
+                        if selectedFilter == "All" || selectedFilter == "Artists" {
+                            ForEach(library.artists) { artist in
+                                HStack(spacing: 14) {
+                                    let coverUrl = artist.coverTrackId.flatMap { DowntifyAPI.shared.coverUrl(trackId: $0, size: 150) }
+                                    AuthenticatedArtworkImage(
+                                        url: coverUrl,
+                                        size: 56,
+                                        cornerRadius: 28 // Round avatar
+                                    )
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(artist.name)
+                                            .font(DowntifyFont.cardTitle)
+                                            .foregroundColor(DowntifyColor.textPrimary)
+                                        
+                                        Text("Artist • \(artist.albums.count) albums • \(artist.tracks.count) tracks")
+                                            .font(DowntifyFont.cardSubtitle)
+                                            .foregroundColor(DowntifyColor.textSecondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(DowntifyColor.textTertiary)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 4)
+                            }
                         }
                     }
                     .padding(.top, 8)
@@ -74,6 +164,9 @@ public struct LibraryView: View {
             }
             .background(theme.currentBackground.ignoresSafeArea())
             .navigationTitle("Your Library")
+            .refreshable {
+                await library.refreshLibrary()
+            }
         }
     }
 }

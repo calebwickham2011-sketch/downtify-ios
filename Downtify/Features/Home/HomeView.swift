@@ -2,108 +2,205 @@ import SwiftUI
 
 public struct HomeView: View {
     @ObservedObject var theme = ThemeManager.shared
-    
-    let mockAlbums: [(String, String, [Color])] = [
-        ("Discover Weekly", "Made for you", [.blue, .purple]),
-        ("Heavy Rotation", "Your top tracks", [.red, .orange]),
-        ("Chill Vibes", "Downtempo & beats", [.teal, .mint]),
-        ("Indie Anthems", "New releases", [.indigo, .pink]),
-        ("Late Night Jazz", "Smooth classics", [.brown, .yellow])
-    ]
+    @ObservedObject var library = LibraryService.shared
+    @ObservedObject var sessionStore = KeychainSessionStore.shared
     
     public init() {}
     
     public var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 22) {
                     // Header Greeting
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Welcome to Downtify")
+                            Text(greetingText)
                                 .font(DowntifyFont.hero)
                                 .foregroundColor(DowntifyColor.textPrimary)
-                            Text("Ready to stream from your music server")
-                                .font(DowntifyFont.body)
-                                .foregroundColor(DowntifyColor.textSecondary)
+                            
+                            if let session = sessionStore.session {
+                                Text("Connected to \(session.serverName.isEmpty ? "Downtify" : session.serverName)")
+                                    .font(DowntifyFont.body)
+                                    .foregroundColor(DowntifyColor.textSecondary)
+                            }
                         }
                         Spacer()
+                        
+                        if library.isLoading {
+                            ProgressView()
+                                .tint(DowntifyColor.primary)
+                        }
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
                     
-                    // Quick Picks 2-column Grid
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                        ForEach(mockAlbums.prefix(4), id: \.0) { album in
-                            HStack(spacing: 10) {
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .fill(LinearGradient(colors: album.2, startPoint: .topLeading, endPoint: .bottomTrailing))
-                                    .frame(width: 52, height: 52)
-                                    .overlay(
-                                        Image(systemName: "music.note")
-                                            .foregroundColor(.white.opacity(0.8))
-                                    )
-                                
-                                Text(album.0)
-                                    .font(DowntifyFont.cardTitle)
-                                    .foregroundColor(DowntifyColor.textPrimary)
-                                    .lineLimit(2)
-                                    .multilineTextAlignment(.leading)
-                                
-                                Spacer(minLength: 0)
-                            }
-                            .background(
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(DowntifyColor.surfaceRaised)
-                            )
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    
-                    // Recently Played Horizontal Carousel
-                    VStack(alignment: .leading, spacing: 12) {
-                        SectionHeader(title: "Recently Played", actionTitle: "See all")
-                        
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 14) {
-                                ForEach(mockAlbums, id: \.0) { item in
-                                    ArtworkCard(
-                                        title: item.0,
-                                        subtitle: item.1,
-                                        gradientColors: item.2,
-                                        size: 140
-                                    )
+                    // Quick Picks Grid (top playlists or albums)
+                    if !quickPicks.isEmpty {
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                            ForEach(quickPicks, id: \.id) { pick in
+                                HStack(spacing: 10) {
+                                    if let coverUrl = pick.coverUrl {
+                                        AuthenticatedArtworkImage(
+                                            url: coverUrl,
+                                            size: 52,
+                                            cornerRadius: 6
+                                        )
+                                    } else {
+                                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                            .fill(LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                            .frame(width: 52, height: 52)
+                                            .overlay(
+                                                Image(systemName: "music.note")
+                                                    .foregroundColor(.white.opacity(0.8))
+                                            )
+                                    }
+                                    
+                                    Text(pick.title)
+                                        .font(DowntifyFont.cardTitle)
+                                        .foregroundColor(DowntifyColor.textPrimary)
+                                        .lineLimit(2)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Spacer(minLength: 0)
                                 }
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                        .fill(DowntifyColor.surfaceRaised)
+                                )
                             }
-                            .padding(.horizontal, 16)
                         }
+                        .padding(.horizontal, 16)
                     }
                     
-                    // Made For You Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        SectionHeader(title: "Made For You")
-                        
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 14) {
-                                ForEach(mockAlbums.reversed(), id: \.0) { item in
-                                    ArtworkCard(
-                                        title: item.0,
-                                        subtitle: item.1,
-                                        gradientColors: item.2,
-                                        size: 140
-                                    )
+                    // Recently Added Albums Carousel
+                    if !library.albums.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader(title: "Recently Added")
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 14) {
+                                    ForEach(library.albums.prefix(10)) { album in
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            let coverUrl = album.coverTrackId.flatMap { DowntifyAPI.shared.coverUrl(trackId: $0, size: 300) }
+                                            AuthenticatedArtworkImage(
+                                                url: coverUrl,
+                                                size: 140,
+                                                cornerRadius: DowntifyShape.coverRadius
+                                            )
+                                            
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(album.title)
+                                                    .font(DowntifyFont.cardTitle)
+                                                    .foregroundColor(DowntifyColor.textPrimary)
+                                                    .lineLimit(1)
+                                                
+                                                Text(album.artist)
+                                                    .font(DowntifyFont.cardSubtitle)
+                                                    .foregroundColor(DowntifyColor.textSecondary)
+                                                    .lineLimit(1)
+                                            }
+                                            .frame(width: 140, alignment: .leading)
+                                        }
+                                    }
                                 }
+                                .padding(.horizontal, 16)
                             }
-                            .padding(.horizontal, 16)
                         }
                     }
                     
-                    // Bottom padding for mini-player
+                    // Featured Artists Carousel
+                    if !library.artists.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader(title: "Artists in Your Library")
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 16) {
+                                    ForEach(library.artists.prefix(10)) { artist in
+                                        VStack(spacing: 8) {
+                                            let coverUrl = artist.coverTrackId.flatMap { DowntifyAPI.shared.coverUrl(trackId: $0, size: 300) }
+                                            AuthenticatedArtworkImage(
+                                                url: coverUrl,
+                                                size: 110,
+                                                cornerRadius: 55 // Circular avatar
+                                            )
+                                            
+                                            Text(artist.name)
+                                                .font(DowntifyFont.cardSubtitle)
+                                                .foregroundColor(DowntifyColor.textPrimary)
+                                                .lineLimit(1)
+                                                .frame(width: 110)
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                            }
+                        }
+                    }
+                    
+                    // Empty state if server has no music yet
+                    if library.tracks.isEmpty && !library.isLoading {
+                        VStack(spacing: 12) {
+                            Image(systemName: "music.note.list")
+                                .font(.system(size: 48))
+                                .foregroundColor(DowntifyColor.textSecondary)
+                            Text("No tracks found on server")
+                                .font(DowntifyFont.sectionTitle)
+                                .foregroundColor(DowntifyColor.textPrimary)
+                            Text("Pull down to refresh or check your music folders.")
+                                .font(DowntifyFont.caption)
+                                .foregroundColor(DowntifyColor.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                    }
+                    
                     Spacer(minLength: 80)
                 }
             }
             .background(theme.currentBackground.ignoresSafeArea())
-            .navigationBarTitleDisplayMode(.inline)
+            .refreshable {
+                await library.refreshLibrary()
+            }
+            .onAppear {
+                library.startLiveSync()
+                if library.tracks.isEmpty {
+                    Task {
+                        await library.refreshLibrary()
+                    }
+                }
+            }
         }
+    }
+    
+    private var greetingText: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        if hour < 12 { return "Good morning" }
+        if hour < 18 { return "Good afternoon" }
+        return "Good evening"
+    }
+    
+    private struct QuickPickItem: Identifiable {
+        let id: String
+        let title: String
+        let coverUrl: URL?
+    }
+    
+    private var quickPicks: [QuickPickItem] {
+        var items: [QuickPickItem] = []
+        // Add Liked Songs
+        if !library.likedTrackIds.isEmpty {
+            items.append(QuickPickItem(id: "liked_songs", title: "Liked Songs", coverUrl: nil))
+        }
+        // Add top playlists
+        for p in library.playlists.prefix(3) {
+            let coverUrl = DowntifyAPI.shared.playlistCoverUrl(path: p.cover)
+            items.append(QuickPickItem(id: "playlist_\(p.name)", title: p.title, coverUrl: coverUrl))
+        }
+        // Add top albums if space left
+        for a in library.albums.prefix(6 - items.count) {
+            let coverUrl = a.coverTrackId.flatMap { DowntifyAPI.shared.coverUrl(trackId: $0, size: 150) }
+            items.append(QuickPickItem(id: "album_\(a.id)", title: a.title, coverUrl: coverUrl))
+        }
+        return items
     }
 }
