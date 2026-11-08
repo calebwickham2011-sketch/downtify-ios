@@ -1,0 +1,421 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		21E58F263D075D67B37F8A62 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0AE543895650B98D26544B /* HomeView.swift */; };
+		4B8BB7D6992E5AF89D0913B3 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E00497B55085F158ABAA8FC /* SearchView.swift */; };
+		584D43ED2ED9575B831C3B82 /* SectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5222E71CA5ED5558A03C7E02 /* SectionHeader.swift */; };
+		664169963FC752FB9DAB84A5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BE10BFC635EF50E29B255B36 /* Assets.xcassets */; };
+		759B0909F0745961A581AF19 /* ArtworkCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34451F301AFE5CA2A8375F0B /* ArtworkCard.swift */; };
+		8A27E8E0C8845CD4BF0D0AFA /* PillFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E8B4760EADD5CF8B6627A6F /* PillFilter.swift */; };
+		94A8043D40805E998FF512B6 /* DowntifyTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 748A4F87E3A8587EB9772C3F /* DowntifyTypography.swift */; };
+		99BEF9C7EF0D5EFBA85F7169 /* DowntifyIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C057506301E5360A9783DBE /* DowntifyIcons.swift */; };
+		AB7B2308E7215F55BE53EF67 /* DowntifyShapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7399C4202A475766B9596BEC /* DowntifyShapes.swift */; };
+		B3F8C441A41D5D76AF579F98 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34A11B46F4C5BB5B1EAEBE9 /* SettingsView.swift */; };
+		BE6A6CA6D9565EA7B787D600 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8346EA01D295952A20441EC /* ContentView.swift */; };
+		C2230BAE86785944A8B2BF20 /* DowntifyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D25A3A0110B75063975117E0 /* DowntifyApp.swift */; };
+		D433E28D241454BB9784FAAE /* DowntifyColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F82C783D6BF56B59EA2A0C1 /* DowntifyColors.swift */; };
+		E81E9A7468BF5BA393E29B43 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400D8FEEC9B7562487E1E5F2 /* LibraryView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		2E8B4760EADD5CF8B6627A6F /* PillFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillFilter.swift; sourceTree = "<group>"; };
+		34451F301AFE5CA2A8375F0B /* ArtworkCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkCard.swift; sourceTree = "<group>"; };
+		400D8FEEC9B7562487E1E5F2 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		4109470DCF3055239D3D7E25 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5222E71CA5ED5558A03C7E02 /* SectionHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeader.swift; sourceTree = "<group>"; };
+		5A0AE543895650B98D26544B /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		5F82C783D6BF56B59EA2A0C1 /* DowntifyColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DowntifyColors.swift; sourceTree = "<group>"; };
+		6FED0D00A4E758E199C0BB24 /* Downtify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Downtify.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7399C4202A475766B9596BEC /* DowntifyShapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DowntifyShapes.swift; sourceTree = "<group>"; };
+		748A4F87E3A8587EB9772C3F /* DowntifyTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DowntifyTypography.swift; sourceTree = "<group>"; };
+		7E00497B55085F158ABAA8FC /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		8C057506301E5360A9783DBE /* DowntifyIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DowntifyIcons.swift; sourceTree = "<group>"; };
+		BE10BFC635EF50E29B255B36 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		C34A11B46F4C5BB5B1EAEBE9 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		D25A3A0110B75063975117E0 /* DowntifyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DowntifyApp.swift; sourceTree = "<group>"; };
+		E8346EA01D295952A20441EC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4ACD9A15676E5F559C0CEA6B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		10A4D0B229E45976A71186C0 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		150B003182AC55639CFA6F04 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				5F82C783D6BF56B59EA2A0C1 /* DowntifyColors.swift */,
+				748A4F87E3A8587EB9772C3F /* DowntifyTypography.swift */,
+				7399C4202A475766B9596BEC /* DowntifyShapes.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		15D9D7A52B4F54F2A3A86FA6 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				C34A11B46F4C5BB5B1EAEBE9 /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		160A7E7014605BDD87E65857 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				5A0AE543895650B98D26544B /* HomeView.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		2018397C069D54069A8E7E06 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				4109470DCF3055239D3D7E25 /* Info.plist */,
+				BE10BFC635EF50E29B255B36 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		281763B1CA5F5315980B5805 /* Player */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Player;
+			sourceTree = "<group>";
+		};
+		35421696A7C45497A3A45A0E /* Search */ = {
+			isa = PBXGroup;
+			children = (
+				7E00497B55085F158ABAA8FC /* SearchView.swift */,
+			);
+			path = Search;
+			sourceTree = "<group>";
+		};
+		4DB0B5E6C6855D0AB392E3CE /* Model */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		6B1646F630255730A0EFB272 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				D25A3A0110B75063975117E0 /* DowntifyApp.swift */,
+				E8346EA01D295952A20441EC /* ContentView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		997F23E762B9555FBFE148B3 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				E7721F8FC21A5BCFB594D090 /* DesignSystem */,
+				4DB0B5E6C6855D0AB392E3CE /* Model */,
+				10A4D0B229E45976A71186C0 /* Network */,
+				281763B1CA5F5315980B5805 /* Player */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		AE02B9C9549A5F0CA9CA21F4 = {
+			isa = PBXGroup;
+			children = (
+				D7FA16B37F815705ACD67098 /* Downtify */,
+				BA60CE3222BE5C99A60CDE4F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BA60CE3222BE5C99A60CDE4F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6FED0D00A4E758E199C0BB24 /* Downtify.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D7FA16B37F815705ACD67098 /* Downtify */ = {
+			isa = PBXGroup;
+			children = (
+				6B1646F630255730A0EFB272 /* App */,
+				997F23E762B9555FBFE148B3 /* Core */,
+				EE061AC9A82E58D886957DEE /* Features */,
+				2018397C069D54069A8E7E06 /* Resources */,
+			);
+			path = Downtify;
+			sourceTree = "<group>";
+		};
+		DA4F200660565056807A5937 /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				400D8FEEC9B7562487E1E5F2 /* LibraryView.swift */,
+			);
+			path = Library;
+			sourceTree = "<group>";
+		};
+		E7721F8FC21A5BCFB594D090 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				150B003182AC55639CFA6F04 /* Theme */,
+				FF5906BD89E75BC1A8AE3044 /* Components */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		EE061AC9A82E58D886957DEE /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				160A7E7014605BDD87E65857 /* Home */,
+				35421696A7C45497A3A45A0E /* Search */,
+				DA4F200660565056807A5937 /* Library */,
+				15D9D7A52B4F54F2A3A86FA6 /* Settings */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		FF5906BD89E75BC1A8AE3044 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				8C057506301E5360A9783DBE /* DowntifyIcons.swift */,
+				34451F301AFE5CA2A8375F0B /* ArtworkCard.swift */,
+				5222E71CA5ED5558A03C7E02 /* SectionHeader.swift */,
+				2E8B4760EADD5CF8B6627A6F /* PillFilter.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0FEB685442575080A32873FB /* Downtify */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 91C43DA9391D50BCB95D6866 /* Build configuration list for PBXNativeTarget "Downtify" */;
+			buildPhases = (
+				CF813799BD97578889E14CD3 /* Sources */,
+				4ACD9A15676E5F559C0CEA6B /* Frameworks */,
+				5E52A94F18765DC5BBD30BC8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Downtify;
+			productName = Downtify;
+			productReference = 6FED0D00A4E758E199C0BB24 /* Downtify.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1F67E08182BC5C4EB0616685 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					0FEB685442575080A32873FB = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = A438A8FEA4EA5AAD9366C7CC /* Build configuration list for PBXProject "Downtify" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AE02B9C9549A5F0CA9CA21F4;
+			productRefGroup = BA60CE3222BE5C99A60CDE4F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0FEB685442575080A32873FB /* Downtify */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5E52A94F18765DC5BBD30BC8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				664169963FC752FB9DAB84A5 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CF813799BD97578889E14CD3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C2230BAE86785944A8B2BF20 /* DowntifyApp.swift in Sources */,
+				BE6A6CA6D9565EA7B787D600 /* ContentView.swift in Sources */,
+				D433E28D241454BB9784FAAE /* DowntifyColors.swift in Sources */,
+				94A8043D40805E998FF512B6 /* DowntifyTypography.swift in Sources */,
+				AB7B2308E7215F55BE53EF67 /* DowntifyShapes.swift in Sources */,
+				99BEF9C7EF0D5EFBA85F7169 /* DowntifyIcons.swift in Sources */,
+				759B0909F0745961A581AF19 /* ArtworkCard.swift in Sources */,
+				584D43ED2ED9575B831C3B82 /* SectionHeader.swift in Sources */,
+				8A27E8E0C8845CD4BF0D0AFA /* PillFilter.swift in Sources */,
+				21E58F263D075D67B37F8A62 /* HomeView.swift in Sources */,
+				4B8BB7D6992E5AF89D0913B3 /* SearchView.swift in Sources */,
+				E81E9A7468BF5BA393E29B43 /* LibraryView.swift in Sources */,
+				B3F8C441A41D5D76AF579F98 /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		13740CCBADC55B1580F4BE48 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = S2KMTR2979;
+				ENABLE_PREVIEWS = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Downtify/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.calebwickham.downtifyios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		212C18D88EB7515FAE44E403 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7FB62C615467536FA18F3A86 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		FD16D2F8B4115D5C84B904D2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = S2KMTR2979;
+				ENABLE_PREVIEWS = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Downtify/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.calebwickham.downtifyios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		91C43DA9391D50BCB95D6866 /* Build configuration list for PBXNativeTarget "Downtify" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FD16D2F8B4115D5C84B904D2 /* Debug */,
+				13740CCBADC55B1580F4BE48 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A438A8FEA4EA5AAD9366C7CC /* Build configuration list for PBXProject "Downtify" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7FB62C615467536FA18F3A86 /* Debug */,
+				212C18D88EB7515FAE44E403 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1F67E08182BC5C4EB0616685 /* Project object */;
+}
