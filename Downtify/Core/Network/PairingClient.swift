@@ -15,6 +15,14 @@ public enum PairingResult: Error {
 public class PairingClient {
     public static let shared = PairingClient()
     
+    private let session: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 10
+        config.timeoutIntervalForResource = 15
+        config.waitsForConnectivity = false
+        return URLSession(configuration: config)
+    }()
+    
     private struct PairRequestBody: Codable {
         let code: String
         let deviceName: String
@@ -74,7 +82,7 @@ public class PairingClient {
         var req = URLRequest(url: url)
         req.timeoutInterval = 8
         do {
-            let (data, response) = try await URLSession.shared.data(for: req)
+            let (data, response) = try await session.data(for: req)
             guard let http = response as? HTTPURLResponse else {
                 return .failure(.unreachable("No response from server"))
             }
@@ -109,7 +117,7 @@ public class PairingClient {
         req.timeoutInterval = 10
         
         do {
-            let (data, response) = try await URLSession.shared.data(for: req)
+            let (data, response) = try await session.data(for: req)
             guard let http = response as? HTTPURLResponse else { return .unreachable("No response") }
             if http.statusCode == 200 {
                 let resp = try JSONDecoder().decode(ServerPairResponse.self, from: data)
@@ -156,7 +164,7 @@ public class PairingClient {
         req.timeoutInterval = 10
         
         do {
-            let (data, response) = try await URLSession.shared.data(for: req)
+            let (data, response) = try await session.data(for: req)
             guard let http = response as? HTTPURLResponse else { return .unreachable("No response") }
             if http.statusCode == 200 {
                 let resp = try JSONDecoder().decode(ServerPairResponse.self, from: data)

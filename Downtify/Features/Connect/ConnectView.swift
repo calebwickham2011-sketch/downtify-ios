@@ -336,29 +336,37 @@ public struct ConnectView: View {
     }
     
     private func checkAddressAndProceed(_ raw: String) {
-        guard let normalized = ServerAddress.normalize(raw) else {
+        let candidates = ServerAddress.candidates(raw)
+        guard !candidates.isEmpty else {
             errorMessage = "Please enter a valid IP address or URL"
             return
         }
         isBusy = true
         errorMessage = nil
         Task {
-            let res = await PairingClient.shared.fetchServerInfo(baseUrl: normalized)
-            await MainActor.run {
-                isBusy = false
+            var lastError = "Could not reach server"
+            for candidate in candidates {
+                let res = await PairingClient.shared.fetchServerInfo(baseUrl: candidate)
                 switch res {
                 case .success(let info):
-                    self.connectedInfo = info
-                    self.activeBaseUrl = normalized
-                    // Default to credentials if supported, else pairing code
-                    self.authMode = info.capabilities.passwordSignIn ? .credentials : .pairingCode
+                    await MainActor.run {
+                        self.isBusy = false
+                        self.connectedInfo = info
+                        self.activeBaseUrl = candidate
+                        self.authMode = info.capabilities.passwordSignIn ? .credentials : .pairingCode
+                    }
+                    return
                 case .failure(let err):
                     switch err {
-                    case .incompatible(let msg): self.errorMessage = msg
-                    case .unreachable(let msg): self.errorMessage = "Could not reach server: \(msg)"
-                    default: self.errorMessage = "Failed to connect to server"
+                    case .incompatible(let msg): lastError = msg
+                    case .unreachable(let msg): lastError = "Could not reach server: \(msg)"
+                    default: lastError = "Failed to connect to server"
                     }
                 }
+            }
+            await MainActor.run {
+                self.isBusy = false
+                self.errorMessage = lastError
             }
         }
     }

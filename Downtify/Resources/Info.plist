@@ -24,9 +24,11 @@
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
 	</dict>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_downtify._tcp</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Downtify needs camera access to scan server pairing QR codes.</string>
 	<key>NSLocalNetworkUsageDescription</key>
