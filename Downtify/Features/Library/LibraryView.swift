@@ -2,7 +2,7 @@ import SwiftUI
 
 public struct LibraryView: View {
     @ObservedObject var theme = ThemeManager.shared
-    @ObservedObject var library = LibraryRepository.shared
+    @ObservedObject var library = LibraryService.shared
     @State private var selectedFilter = "All"
     let filters = ["All", "Playlists", "Albums", "Artists"]
     
@@ -29,7 +29,7 @@ public struct LibraryView: View {
                 // Library List
                 ScrollView {
                     LazyVStack(spacing: 12) {
-                        // Liked Songs row
+                        // Liked Songs row (shown when All or Playlists selected)
                         if selectedFilter == "All" || selectedFilter == "Playlists" {
                             HStack(spacing: 14) {
                                 RoundedRectangle(cornerRadius: DowntifyShape.coverRadius, style: .continuous)
@@ -84,16 +84,9 @@ public struct LibraryView: View {
                                     
                                     Spacer()
                                     
-                                    Button(action: {
-                                        Task {
-                                            await library.togglePlaylistFavorite(playlist: playlist)
-                                        }
-                                    }) {
-                                        Image(systemName: playlist.favorite ? "star.fill" : "star")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(playlist.favorite ? .yellow : DowntifyColor.textTertiary)
-                                    }
-                                    .buttonStyle(.plain)
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(DowntifyColor.textTertiary)
                                 }
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 4)
@@ -140,7 +133,7 @@ public struct LibraryView: View {
                                     AuthenticatedArtworkImage(
                                         url: coverUrl,
                                         size: 56,
-                                        cornerRadius: 28
+                                        cornerRadius: 28 // Round avatar
                                     )
                                     
                                     VStack(alignment: .leading, spacing: 4) {
@@ -172,7 +165,7 @@ public struct LibraryView: View {
             .background(theme.currentBackground.ignoresSafeArea())
             .navigationTitle("Your Library")
             .refreshable {
-                await library.syncWithServer(forceFull: true)
+                await library.refreshLibrary()
             }
         }
     }

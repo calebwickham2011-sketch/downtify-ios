@@ -26,6 +26,8 @@ public class LibraryRepository: ObservableObject {
         do {
             let schema = Schema([
                 TrackEntity.self,
+                AlbumEntity.self,
+                ArtistEntity.self,
                 PlaylistEntity.self,
                 RecentItemEntity.self,
                 SyncMetaEntity.self,
@@ -130,6 +132,22 @@ public class LibraryRepository: ObservableObject {
             for (idx, p) in playlistsResult.enumerated() {
                 let entity = PlaylistEntity(from: p, position: idx)
                 modelContext.insert(entity)
+            }
+            
+            // Rebuild Album + Artist denormalized caches from track data
+            let allTracks = libResult.tracks.isEmpty && cursorToFetch != 0
+                ? (try? modelContext.fetch(FetchDescriptor<TrackEntity>()))?.map { $0.toModel() } ?? []
+                : libResult.tracks
+            let rebuiltAlbums = LibraryGrouping.albums(from: allTracks)
+            let rebuiltArtists = LibraryGrouping.artists(from: allTracks)
+            
+            try? modelContext.delete(model: AlbumEntity.self)
+            for album in rebuiltAlbums {
+                modelContext.insert(AlbumEntity(from: album))
+            }
+            try? modelContext.delete(model: ArtistEntity.self)
+            for artist in rebuiltArtists {
+                modelContext.insert(ArtistEntity(from: artist))
             }
             
             // Update Sync Meta
