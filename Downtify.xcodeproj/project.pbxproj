@@ -44,6 +44,7 @@
 		BB000001000000000000BB04 /* ListenTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000001000000000000BB03 /* ListenTracker.swift */; };
 		BB000001000000000000BB06 /* PlayerQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000001000000000000BB05 /* PlayerQueue.swift */; };
 		E81E9A7468BF5BA393E29B43 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400D8FEEC9B7562487E1E5F2 /* LibraryView.swift */; };
+		CC000001000000000000CC02 /* AlbumDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC000001000000000000CC01 /* AlbumDetailView.swift */; };
 		EAEBA65E8A3E53DCAAB30DC4 /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35AB1F44DDF35E30B0F70D60 /* ConnectView.swift */; };
 		F99C2DFBB2505516B24CEB95 /* LibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A947AEEDD8158F284FCB7D8 /* LibraryService.swift */; };
 		FD3C0CBC8C47567B9367072A /* LibraryGrouping.swift in Sources */ = {isa = PBXBuildFile; fileRef = A32159DD66545991859FC499 /* LibraryGrouping.swift */; };
@@ -65,6 +66,7 @@
 		39F025E34B0F5AA3BF8B6E4A /* SyncMetaEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncMetaEntity.swift; sourceTree = "<group>"; };
 		3A947AEEDD8158F284FCB7D8 /* LibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryService.swift; sourceTree = "<group>"; };
 		400D8FEEC9B7562487E1E5F2 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		CC000001000000000000CC01 /* AlbumDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumDetailView.swift; sourceTree = "<group>"; };
 		4109470DCF3055239D3D7E25 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5222E71CA5ED5558A03C7E02 /* SectionHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeader.swift; sourceTree = "<group>"; };
 		5A0AE543895650B98D26544B /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -269,6 +271,7 @@
 			isa = PBXGroup;
 			children = (
 				400D8FEEC9B7562487E1E5F2 /* LibraryView.swift */,
+				CC000001000000000000CC01 /* AlbumDetailView.swift */,
 			);
 			path = Library;
 			sourceTree = "<group>";
@@ -409,6 +412,7 @@
 				21E58F263D075D67B37F8A62 /* HomeView.swift in Sources */,
 				4B8BB7D6992E5AF89D0913B3 /* SearchView.swift in Sources */,
 				E81E9A7468BF5BA393E29B43 /* LibraryView.swift in Sources */,
+				CC000001000000000000CC02 /* AlbumDetailView.swift in Sources */,
 				B3F8C441A41D5D76AF579F98 /* SettingsView.swift in Sources */,
 				88D17A11FCBE54ED975A798B /* QRScannerView.swift in Sources */,
 				EAEBA65E8A3E53DCAAB30DC4 /* ConnectView.swift in Sources */,

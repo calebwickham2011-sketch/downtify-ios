@@ -8,11 +8,12 @@ public enum TabDestination: Hashable {
 
 public struct ContentView: View {
     @ObservedObject var theme = ThemeManager.shared
+    @ObservedObject private var player = AudioPlayerManager.shared
     @State private var selectedTab: TabDestination = .home
     @State private var showSettings = false
-    
+
     public init() {}
-    
+
     public var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
@@ -21,13 +22,13 @@ public struct ContentView: View {
                         Label("Home", systemImage: selectedTab == .home ? DowntifyIcons.home : DowntifyIcons.homeOutline)
                     }
                     .tag(TabDestination.home)
-                
+
                 SearchView()
                     .tabItem {
                         Label("Search", systemImage: DowntifyIcons.search)
                     }
                     .tag(TabDestination.search)
-                
+
                 LibraryView()
                     .tabItem {
                         Label("Your Library", systemImage: selectedTab == .library ? DowntifyIcons.library : DowntifyIcons.libraryOutline)
@@ -35,53 +36,13 @@ public struct ContentView: View {
                     .tag(TabDestination.library)
             }
             .tint(DowntifyColor.primary)
-            
-            // Docked MiniPlayer Preview (Phase 6 full morph target)
-            VStack(spacing: 0) {
-                HStack(spacing: 12) {
-                    RoundedRectangle(cornerRadius: DowntifyShape.coverRadius, style: .continuous)
-                        .fill(LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .frame(width: 44, height: 44)
-                        .overlay(
-                            Image(systemName: "music.note")
-                                .foregroundColor(.white.opacity(0.8))
-                        )
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Midnight City")
-                            .font(DowntifyFont.cardTitle)
-                            .foregroundColor(DowntifyColor.textPrimary)
-                            .lineLimit(1)
-                        
-                        Text("M83 • Hurry Up, We're Dreaming")
-                            .font(DowntifyFont.cardSubtitle)
-                            .foregroundColor(DowntifyColor.textSecondary)
-                            .lineLimit(1)
-                    }
-                    
-                    Spacer()
-                    
-                    Button(action: {}) {
-                        Image(systemName: DowntifyIcons.play)
-                            .font(.system(size: 20))
-                            .foregroundColor(DowntifyColor.textPrimary)
-                    }
-                    .padding(.trailing, 8)
-                    
-                    Button(action: {}) {
-                        Image(systemName: DowntifyIcons.forward)
-                            .font(.system(size: 20))
-                            .foregroundColor(DowntifyColor.textSecondary)
-                    }
-                }
-                .padding(10)
-                .background(
-                    RoundedRectangle(cornerRadius: DowntifyShape.miniPlayerRadius, style: .continuous)
-                        .fill(DowntifyColor.surfaceRaised)
-                        .shadow(color: .black.opacity(0.4), radius: 8, x: 0, y: 4)
-                )
-                .padding(.horizontal, 12)
-                .padding(.bottom, 54) // Positions right above the iOS TabBar
+
+            // Live Mini Player — hidden when nothing is playing
+            if player.currentTrack != nil {
+                MiniPlayerBar()
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 54)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         .toolbar {
@@ -96,5 +57,85 @@ public struct ContentView: View {
             SettingsView()
         }
         .preferredColorScheme(.dark)
+        .animation(.spring(response: 0.35), value: player.currentTrack?.id)
     }
 }
+
+// MARK: - Mini Player Bar
+
+struct MiniPlayerBar: View {
+    @ObservedObject private var player = AudioPlayerManager.shared
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Artwork
+            if let track = player.currentTrack, track.hasCover,
+               let url = DowntifyAPI.shared.coverUrl(trackId: track.id, size: 100) {
+                AuthenticatedArtworkImage(url: url, size: 44, cornerRadius: 6)
+            } else {
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 44, height: 44)
+                    .overlay(Image(systemName: "music.note").foregroundColor(.white.opacity(0.8)))
+            }
+
+            // Track info
+            VStack(alignment: .leading, spacing: 2) {
+                Text(player.currentTrack?.displayTitle ?? "")
+                    .font(DowntifyFont.cardTitle)
+                    .foregroundColor(DowntifyColor.textPrimary)
+                    .lineLimit(1)
+                Text(player.currentTrack?.displayArtist ?? "")
+                    .font(DowntifyFont.cardSubtitle)
+                    .foregroundColor(DowntifyColor.textSecondary)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            // Play / Pause
+            Button {
+                player.togglePlayPause()
+            } label: {
+                Group {
+                    if player.state == .loading {
+                        ProgressView().tint(DowntifyColor.textPrimary)
+                    } else {
+                        Image(systemName: player.state == .playing ? DowntifyIcons.pause : DowntifyIcons.play)
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundColor(DowntifyColor.textPrimary)
+                    }
+                }
+                .frame(width: 32, height: 32)
+            }
+
+            // Skip next
+            Button {
+                player.skipToNext()
+            } label: {
+                Image(systemName: DowntifyIcons.forward)
+                    .font(.system(size: 20))
+                    .foregroundColor(DowntifyColor.textSecondary)
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: DowntifyShape.miniPlayerRadius, style: .continuous)
+                .fill(DowntifyColor.surfaceRaised)
+                .shadow(color: .black.opacity(0.4), radius: 8, x: 0, y: 4)
+        )
+        // Thin seek progress line across the bottom of the bar
+        .overlay(alignment: .bottom) {
+            if player.duration > 0 {
+                GeometryReader { geo in
+                    Rectangle()
+                        .fill(DowntifyColor.primary)
+                        .frame(width: geo.size.width * CGFloat(player.currentTime / player.duration), height: 2)
+                }
+                .frame(height: 2)
+                .clipShape(RoundedRectangle(cornerRadius: DowntifyShape.miniPlayerRadius))
+            }
+        }
+    }
+}
+

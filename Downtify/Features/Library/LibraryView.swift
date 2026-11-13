@@ -96,32 +96,35 @@ public struct LibraryView: View {
                         // Albums
                         if selectedFilter == "All" || selectedFilter == "Albums" {
                             ForEach(library.albums) { album in
-                                HStack(spacing: 14) {
-                                    let coverUrl = album.coverTrackId.flatMap { DowntifyAPI.shared.coverUrl(trackId: $0, size: 150) }
-                                    AuthenticatedArtworkImage(
-                                        url: coverUrl,
-                                        size: 56,
-                                        cornerRadius: DowntifyShape.coverRadius
-                                    )
-                                    
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(album.title)
-                                            .font(DowntifyFont.cardTitle)
-                                            .foregroundColor(DowntifyColor.textPrimary)
+                                NavigationLink(destination: AlbumDetailView(album: album)) {
+                                    HStack(spacing: 14) {
+                                        let coverUrl = album.coverTrackId.flatMap { DowntifyAPI.shared.coverUrl(trackId: $0, size: 150) }
+                                        AuthenticatedArtworkImage(
+                                            url: coverUrl,
+                                            size: 56,
+                                            cornerRadius: DowntifyShape.coverRadius
+                                        )
                                         
-                                        Text("Album • \(album.artist) • \(album.trackCount) tracks")
-                                            .font(DowntifyFont.cardSubtitle)
-                                            .foregroundColor(DowntifyColor.textSecondary)
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(album.title)
+                                                .font(DowntifyFont.cardTitle)
+                                                .foregroundColor(DowntifyColor.textPrimary)
+                                            
+                                            Text("Album • \(album.artist) • \(album.trackCount) tracks")
+                                                .font(DowntifyFont.cardSubtitle)
+                                                .foregroundColor(DowntifyColor.textSecondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(DowntifyColor.textTertiary)
                                     }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(DowntifyColor.textTertiary)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 4)
                                 }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 4)
+                                .buttonStyle(.plain)
                             }
                         }
                         
