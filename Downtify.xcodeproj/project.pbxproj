@@ -40,6 +40,9 @@
 		E5C23DAFFC7A500FB11ABAAA /* TrackEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D5FB0AF3D675A41A8C5B8F6 /* TrackEntity.swift */; };
 		AA000001000000000000AA02 /* AlbumEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000001000000000000AA01 /* AlbumEntity.swift */; };
 		AA000001000000000000AA04 /* ArtistEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000001000000000000AA03 /* ArtistEntity.swift */; };
+		BB000001000000000000BB02 /* AudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000001000000000000BB01 /* AudioPlayerManager.swift */; };
+		BB000001000000000000BB04 /* ListenTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000001000000000000BB03 /* ListenTracker.swift */; };
+		BB000001000000000000BB06 /* PlayerQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000001000000000000BB05 /* PlayerQueue.swift */; };
 		E81E9A7468BF5BA393E29B43 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400D8FEEC9B7562487E1E5F2 /* LibraryView.swift */; };
 		EAEBA65E8A3E53DCAAB30DC4 /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35AB1F44DDF35E30B0F70D60 /* ConnectView.swift */; };
 		F99C2DFBB2505516B24CEB95 /* LibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A947AEEDD8158F284FCB7D8 /* LibraryService.swift */; };
@@ -51,6 +54,9 @@
 		1D5FB0AF3D675A41A8C5B8F6 /* TrackEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackEntity.swift; sourceTree = "<group>"; };
 		AA000001000000000000AA01 /* AlbumEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumEntity.swift; sourceTree = "<group>"; };
 		AA000001000000000000AA03 /* ArtistEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistEntity.swift; sourceTree = "<group>"; };
+		BB000001000000000000BB01 /* AudioPlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerManager.swift; sourceTree = "<group>"; };
+		BB000001000000000000BB03 /* ListenTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenTracker.swift; sourceTree = "<group>"; };
+		BB000001000000000000BB05 /* PlayerQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerQueue.swift; sourceTree = "<group>"; };
 		23464E1E2778595FA551416A /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
 		2E8B4760EADD5CF8B6627A6F /* PillFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillFilter.swift; sourceTree = "<group>"; };
 		34451F301AFE5CA2A8375F0B /* ArtworkCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkCard.swift; sourceTree = "<group>"; };
@@ -151,6 +157,9 @@
 		281763B1CA5F5315980B5805 /* Player */ = {
 			isa = PBXGroup;
 			children = (
+				BB000001000000000000BB01 /* AudioPlayerManager.swift */,
+				BB000001000000000000BB03 /* ListenTracker.swift */,
+				BB000001000000000000BB05 /* PlayerQueue.swift */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -390,6 +399,9 @@
 				E5C23DAFFC7A500FB11ABAAA /* TrackEntity.swift in Sources */,
 				AA000001000000000000AA02 /* AlbumEntity.swift in Sources */,
 				AA000001000000000000AA04 /* ArtistEntity.swift in Sources */,
+				BB000001000000000000BB02 /* AudioPlayerManager.swift in Sources */,
+				BB000001000000000000BB04 /* ListenTracker.swift in Sources */,
+				BB000001000000000000BB06 /* PlayerQueue.swift in Sources */,
 				ABE66DA20F755765A9646F06 /* PlaylistEntity.swift in Sources */,
 				8AF085EA618958E1BF695D56 /* RecentItemEntity.swift in Sources */,
 				D845B851068853249F776FBE /* SyncMetaEntity.swift in Sources */,
