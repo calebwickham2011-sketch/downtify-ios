@@ -227,6 +227,17 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
         state = .loading
         currentTime = 0
 
+        // MARK: - Offline Playback Fallback
+        if let localFileUrl = OfflineDownloadManager.shared.localAudioUrl(for: track.id) {
+            let item = AVPlayerItem(url: localFileUrl)
+            observePlayerItem(item, for: track)
+            player.replaceCurrentItem(with: item)
+            player.play()
+            updateNowPlayingMetadata(for: track)
+            listenTracker.trackStarted(track: track)
+            return
+        }
+
         guard let streamURL = api.streamUrl(trackId: track.id),
               let token = KeychainSessionStore.shared.session?.token else {
             state = .error("No stream URL or session")

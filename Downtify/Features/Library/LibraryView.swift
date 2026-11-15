@@ -64,32 +64,35 @@ public struct LibraryView: View {
                         // Playlists
                         if selectedFilter == "All" || selectedFilter == "Playlists" {
                             ForEach(library.playlists) { playlist in
-                                HStack(spacing: 14) {
-                                    let coverUrl = DowntifyAPI.shared.playlistCoverUrl(path: playlist.cover)
-                                    AuthenticatedArtworkImage(
-                                        url: coverUrl,
-                                        size: 56,
-                                        cornerRadius: DowntifyShape.coverRadius
-                                    )
-                                    
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(playlist.title)
-                                            .font(DowntifyFont.cardTitle)
-                                            .foregroundColor(DowntifyColor.textPrimary)
+                                NavigationLink(destination: PlaylistDetailView(playlist: playlist)) {
+                                    HStack(spacing: 14) {
+                                        let coverUrl = DowntifyAPI.shared.playlistCoverUrl(path: playlist.cover)
+                                        AuthenticatedArtworkImage(
+                                            url: coverUrl,
+                                            size: 56,
+                                            cornerRadius: DowntifyShape.coverRadius
+                                        )
                                         
-                                        Text("Playlist • \(playlist.trackIds.count) tracks")
-                                            .font(DowntifyFont.cardSubtitle)
-                                            .foregroundColor(DowntifyColor.textSecondary)
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(playlist.title)
+                                                .font(DowntifyFont.cardTitle)
+                                                .foregroundColor(DowntifyColor.textPrimary)
+                                            
+                                            Text("Playlist • \(playlist.trackIds.count) tracks")
+                                                .font(DowntifyFont.cardSubtitle)
+                                                .foregroundColor(DowntifyColor.textSecondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(DowntifyColor.textTertiary)
                                     }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(DowntifyColor.textTertiary)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 4)
                                 }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 4)
+                                .buttonStyle(.plain)
                             }
                         }
                         

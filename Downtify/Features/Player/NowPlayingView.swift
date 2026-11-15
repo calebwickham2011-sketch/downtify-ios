@@ -69,10 +69,10 @@ public struct NowPlayingView: View {
                 
                 // MARK: - Content Layout
                 VStack(spacing: 0) {
-                    // Top Navigation Header
+                    // Top Navigation Header (lowered for Dynamic Island)
                     topHeader
                         .padding(.horizontal, 20)
-                        .padding(.top, 12)
+                        .padding(.top, max(geo.safeAreaInsets.top, 54) + 6)
                     
                     Spacer(minLength: 8)
                     

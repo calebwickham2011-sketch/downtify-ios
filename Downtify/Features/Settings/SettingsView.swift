@@ -95,17 +95,21 @@ public struct SettingsView: View {
                     }
                 }
                 
-                // Storage & Cache
+                // Storage & Offline
                 Section("Storage") {
-                    HStack {
-                        Text("Audio Cache Size")
-                        Spacer()
-                        Text("142 MB")
-                            .font(DowntifyFont.dataValue)
-                            .foregroundColor(DowntifyColor.textSecondary)
+                    NavigationLink(destination: StorageManagementView()) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Storage Management")
+                                    .font(DowntifyFont.body)
+                                    .foregroundColor(DowntifyColor.textPrimary)
+                                Text("Offline downloads, cache size & quotas")
+                                    .font(DowntifyFont.caption)
+                                    .foregroundColor(DowntifyColor.textSecondary)
+                            }
+                            Spacer()
+                        }
                     }
-                    
-                    Button("Clear Local Cache", role: .destructive) {}
                 }
                 
                 // About
