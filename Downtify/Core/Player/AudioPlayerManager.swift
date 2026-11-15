@@ -34,6 +34,8 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
     @Published public private(set) var duration: Double = 0
     @Published public private(set) var isShuffled: Bool = false
     @Published public private(set) var repeatMode: RepeatMode = .off
+    @Published public var volume: Float = 1.0
+    @Published public var playbackContext: String = ""
 
     public enum RepeatMode { case off, one, all }
 
@@ -76,15 +78,22 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
     // MARK: - Playback Control
 
     /// Load a new queue and start playing from the given index.
-    public func play(queue tracks: [Track], startingAt index: Int = 0) {
+    public func play(queue tracks: [Track], startingAt index: Int = 0, context: String = "") {
         self.queue = tracks
         self.queueIndex = index
+        self.playbackContext = context
         playCurrentItem()
     }
 
     /// Convenience: play a single track immediately (replaces queue).
-    public func play(track: Track) {
-        play(queue: [track], startingAt: 0)
+    public func play(track: Track, context: String = "") {
+        play(queue: [track], startingAt: 0, context: context)
+    }
+
+    public func setVolume(_ newVolume: Float) {
+        let clamped = max(0.0, min(newVolume, 1.0))
+        self.volume = clamped
+        self.player.volume = clamped
     }
 
     public func pause() {
@@ -377,11 +386,14 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
         // Set placeholder artwork immediately, then fetch hi-res async
         nowPlayingCenter.nowPlayingInfo = info
 
-        // Fetch cover art asynchronously
+        // Fetch cover art asynchronously with auth header
         if track.hasCover, let url = api.coverUrl(trackId: track.id, size: 600) {
+            let token = KeychainSessionStore.shared.session?.token
             Task.detached(priority: .background) { [weak self] in
                 guard let self else { return }
-                if let (data, _) = try? await URLSession.shared.data(from: url),
+                var request = URLRequest(url: url)
+                if let token { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
+                if let (data, _) = try? await URLSession.shared.data(for: request),
                    let uiImage = UIImage(data: data) {
                     let artwork = MPMediaItemArtwork(boundsSize: uiImage.size) { _ in uiImage }
                     await MainActor.run {

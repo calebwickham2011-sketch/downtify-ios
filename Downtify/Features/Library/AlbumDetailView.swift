@@ -33,7 +33,7 @@ struct AlbumDetailView: View {
                 // Shuffle / Play all buttons
                 HStack(spacing: 16) {
                     Button {
-                        AudioPlayerManager.shared.play(queue: tracks.shuffled(), startingAt: 0)
+                        AudioPlayerManager.shared.play(queue: tracks.shuffled(), startingAt: 0, context: "Playing from album")
                     } label: {
                         Label("Shuffle", systemImage: "shuffle")
                             .font(DowntifyFont.cardTitle)
@@ -43,7 +43,7 @@ struct AlbumDetailView: View {
                             .cornerRadius(10)
                     }
                     Button {
-                        AudioPlayerManager.shared.play(queue: tracks, startingAt: 0)
+                        AudioPlayerManager.shared.play(queue: tracks, startingAt: 0, context: "Playing from album")
                     } label: {
                         Label("Play All", systemImage: "play.fill")
                             .font(DowntifyFont.cardTitle)
@@ -62,7 +62,7 @@ struct AlbumDetailView: View {
             // Track rows
             ForEach(Array(tracks.enumerated()), id: \.element.id) { idx, track in
                 Button {
-                    AudioPlayerManager.shared.play(queue: tracks, startingAt: idx)
+                    AudioPlayerManager.shared.play(queue: tracks, startingAt: idx, context: "Playing from album")
                 } label: {
                     HStack(spacing: 14) {
                         // Track number / playing indicator

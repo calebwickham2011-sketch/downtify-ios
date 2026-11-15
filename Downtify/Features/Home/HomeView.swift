@@ -80,27 +80,30 @@ public struct HomeView: View {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 14) {
                                     ForEach(library.albums.prefix(10)) { album in
-                                        VStack(alignment: .leading, spacing: 8) {
-                                            let coverUrl = album.coverTrackId.flatMap { DowntifyAPI.shared.coverUrl(trackId: $0, size: 300) }
-                                            AuthenticatedArtworkImage(
-                                                url: coverUrl,
-                                                size: 140,
-                                                cornerRadius: DowntifyShape.coverRadius
-                                            )
-                                            
-                                            VStack(alignment: .leading, spacing: 2) {
-                                                Text(album.title)
-                                                    .font(DowntifyFont.cardTitle)
-                                                    .foregroundColor(DowntifyColor.textPrimary)
-                                                    .lineLimit(1)
+                                        NavigationLink(destination: AlbumDetailView(album: album)) {
+                                            VStack(alignment: .leading, spacing: 8) {
+                                                let coverUrl = album.coverTrackId.flatMap { DowntifyAPI.shared.coverUrl(trackId: $0, size: 300) }
+                                                AuthenticatedArtworkImage(
+                                                    url: coverUrl,
+                                                    size: 140,
+                                                    cornerRadius: DowntifyShape.coverRadius
+                                                )
                                                 
-                                                Text(album.artist)
-                                                    .font(DowntifyFont.cardSubtitle)
-                                                    .foregroundColor(DowntifyColor.textSecondary)
-                                                    .lineLimit(1)
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(album.title)
+                                                        .font(DowntifyFont.cardTitle)
+                                                        .foregroundColor(DowntifyColor.textPrimary)
+                                                        .lineLimit(1)
+                                                    
+                                                    Text(album.artist)
+                                                        .font(DowntifyFont.cardSubtitle)
+                                                        .foregroundColor(DowntifyColor.textSecondary)
+                                                        .lineLimit(1)
+                                                }
+                                                .frame(width: 140, alignment: .leading)
                                             }
-                                            .frame(width: 140, alignment: .leading)
                                         }
+                                        .buttonStyle(.plain)
                                     }
                                 }
                                 .padding(.horizontal, 16)
