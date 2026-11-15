@@ -181,6 +181,23 @@ public class DowntifyAPI {
         return res.favorite ?? favorite
     }
     
+    // Wire shape for Lyrics response
+    private struct LyricsDto: Codable {
+        let synced: String?
+        let plain: String?
+        
+        func toModel() -> Lyrics {
+            let parsedSynced = (synced?.isEmpty ?? true) ? [] : LrcParser.parse(lrc: synced!)
+            return Lyrics(synced: parsedSynced, plain: plain ?? "")
+        }
+    }
+    
+    public func fetchLyrics(trackId: String) async throws -> Lyrics {
+        let req = try makeRequest(endpoint: "api/v1/tracks/\(trackId)/lyrics")
+        let dto: LyricsDto = try await execute(req)
+        return dto.toModel()
+    }
+    
     // MARK: - Media URLs
     public func coverUrl(trackId: String, size: Int = 300) -> URL? {
         guard let session = sessionStore.session else { return nil }

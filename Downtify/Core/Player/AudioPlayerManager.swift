@@ -173,6 +173,48 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
         }
     }
 
+    // MARK: - Queue Management
+    
+    public var history: [Track] {
+        guard queueIndex > 0 else { return [] }
+        return Array(queue[0..<min(queueIndex, queue.count)])
+    }
+    
+    public var upcoming: [Track] {
+        guard queueIndex + 1 < queue.count else { return [] }
+        return Array(queue[(queueIndex + 1)...])
+    }
+    
+    public func moveUpcoming(fromOffsets: IndexSet, toOffset: Int) {
+        let upcomingStart = queueIndex + 1
+        guard upcomingStart < queue.count else { return }
+        
+        var upcomingSlice = Array(queue[upcomingStart...])
+        upcomingSlice.move(fromOffsets: fromOffsets, toOffset: toOffset)
+        
+        self.queue = Array(queue[0...queueIndex]) + upcomingSlice
+    }
+    
+    public func removeUpcoming(at offset: Int) {
+        let actualIndex = queueIndex + 1 + offset
+        guard queue.indices.contains(actualIndex) else { return }
+        self.queue.remove(at: actualIndex)
+    }
+    
+    public func clearUpcoming() {
+        guard queueIndex < queue.count else { return }
+        self.queue = Array(queue[0...queueIndex])
+    }
+    
+    public func playNext(track: Track) {
+        let insertPos = min(queueIndex + 1, queue.count)
+        self.queue.insert(track, at: insertPos)
+    }
+    
+    public func addToQueue(track: Track) {
+        self.queue.append(track)
+    }
+
     // MARK: - Private Playback
 
     private func playCurrentItem() {

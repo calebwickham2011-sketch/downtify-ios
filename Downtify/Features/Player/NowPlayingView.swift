@@ -40,11 +40,15 @@ public struct NowPlayingView: View {
             let artworkSize = min(screenWidth - 64, 340)
             
             ZStack {
+                // Completely solid, opaque black base to ensure zero transparency
+                Color.black
+                    .ignoresSafeArea()
+                
                 // MARK: - Dynamic Ambient Gradient Background
                 LinearGradient(
                     colors: [
-                        ambientBgColor.opacity(0.95),
-                        primaryColor.opacity(0.25),
+                        ambientBgColor,
+                        primaryColor.opacity(0.35),
                         DowntifyColor.backgroundDark
                     ],
                     startPoint: .top,
@@ -55,7 +59,7 @@ public struct NowPlayingView: View {
                 
                 // Subtle radial light pool behind artwork
                 RadialGradient(
-                    colors: [primaryColor.opacity(0.35), Color.clear],
+                    colors: [primaryColor.opacity(0.40), Color.clear],
                     center: .top,
                     startRadius: 20,
                     endRadius: screenHeight * 0.55
@@ -113,8 +117,8 @@ public struct NowPlayingView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .offset(y: max(0, dragOffset))
-            .scaleEffect(dragOffset > 0 ? max(0.90, 1.0 - (dragOffset / screenHeight) * 0.2) : 1.0)
-            .opacity(dragOffset > 0 ? max(0.65, 1.0 - (dragOffset / screenHeight) * 0.7) : 1.0)
+            .scaleEffect(dragOffset > 0 ? max(0.92, 1.0 - (dragOffset / screenHeight) * 0.15) : 1.0)
+            .background(Color.black.ignoresSafeArea())
             .gesture(
                 DragGesture()
                     .onChanged { value in
@@ -139,10 +143,10 @@ public struct NowPlayingView: View {
             )
         }
         .sheet(isPresented: $showQueue) {
-            QueueSheetView()
+            UpNextQueueView()
         }
-        .sheet(isPresented: $showLyrics) {
-            lyricsPlaceholderSheet
+        .fullScreenCover(isPresented: $showLyrics) {
+            LyricsView()
         }
         .onAppear {
             extractCoverColors()
@@ -464,42 +468,6 @@ public struct NowPlayingView: View {
                 )
             }
         }
-    }
-    
-    // MARK: - Lyrics Placeholder Sheet
-    private var lyricsPlaceholderSheet: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Image(systemName: "quote.bubble.fill")
-                    .font(.system(size: 48))
-                    .foregroundColor(DowntifyColor.primary)
-                    .padding(.top, 40)
-                
-                Text("Synced Lyrics")
-                    .font(DowntifyFont.hero)
-                    .foregroundColor(DowntifyColor.textPrimary)
-                
-                Text("LRC synchronized lyrics will highlight in real-time with playback.")
-                    .font(DowntifyFont.body)
-                    .foregroundColor(DowntifyColor.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                
-                Spacer()
-            }
-            .background(DowntifyColor.backgroundDark.ignoresSafeArea())
-            .navigationTitle(player.currentTrack?.displayTitle ?? "Lyrics")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        showLyrics = false
-                    }
-                    .foregroundColor(DowntifyColor.primary)
-                }
-            }
-        }
-        .preferredColorScheme(.dark)
     }
     
     // MARK: - Color Extraction

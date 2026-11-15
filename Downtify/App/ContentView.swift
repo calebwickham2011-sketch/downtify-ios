@@ -38,6 +38,7 @@ public struct ContentView: View {
                     .tag(TabDestination.library)
             }
             .tint(DowntifyColor.primary)
+            .toolbar(isNowPlayingExpanded ? .hidden : .visible, for: .tabBar)
 
             // Docked MiniPlayer — visible right above the TabBar when a track is active
             if player.currentTrack != nil && !isNowPlayingExpanded {
@@ -54,13 +55,15 @@ public struct ContentView: View {
                 ))
             }
             
-            // Full-screen Expandable NowPlayingView
+            // Full-screen Expandable NowPlayingView (Opaque & covers entire screen)
             if isNowPlayingExpanded && player.currentTrack != nil {
                 NowPlayingView(onDismiss: {
                     withAnimation(.spring(response: 0.36, dampingFraction: 0.86)) {
                         isNowPlayingExpanded = false
                     }
                 })
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
                 .transition(.asymmetric(
                     insertion: .move(edge: .bottom),
                     removal: .move(edge: .bottom).combined(with: .opacity)
