@@ -14,7 +14,7 @@ public struct DownloadProgress: Equatable {
     public var bytesWritten: Int64
     public var totalBytes: Int64
     public var state: DownloadState
-    
+
     public init(progress: Double = 0, bytesWritten: Int64 = 0, totalBytes: Int64 = 0, state: DownloadState = .queued) {
         self.progress = progress
         self.bytesWritten = bytesWritten
@@ -37,11 +37,12 @@ public struct OfflineTrackInfo: Codable, Identifiable {
     public let codec: String
 }
 
-/// Central manager for offline track downloading, background transfers, and local storage.
+/// Central manager for offline track downloading and local storage.
+/// Uses foreground URLSession async/await for Simulator + device reliability.
 @MainActor
 public final class OfflineDownloadManager: NSObject, ObservableObject {
     public static let shared = OfflineDownloadManager()
-    
+
     // Published states for UI observers
     @Published public private(set) var downloadedTrackIds: Set<String> = []
     @Published public private(set) var activeDownloads: [String: DownloadProgress] = [:]
@@ -51,99 +52,89 @@ public final class OfflineDownloadManager: NSObject, ObservableObject {
             UserDefaults.standard.set(storageQuotaGB, forKey: "downtify_storage_quota_gb")
         }
     }
-    
+
     private let offlineDir: URL
     private let metadataFile: URL
     private var metadataRegistry: [String: OfflineTrackInfo] = [:]
-    
-    // Tasks map: TaskIdentifier -> TrackId
-    private var taskToTrackMap: [Int: String] = [:]
-    private var downloadSession: URLSession!
-    
+
+    // Foreground URLSession — works reliably on Simulator and device
+    private let foregroundSession: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 300
+        config.timeoutIntervalForResource = 3600
+        return URLSession(configuration: config)
+    }()
+
     private override init() {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         self.offlineDir = docs.appendingPathComponent("OfflineAudio", isDirectory: true)
         self.metadataFile = self.offlineDir.appendingPathComponent("metadata.json")
-        
+
         let savedQuota = UserDefaults.standard.double(forKey: "downtify_storage_quota_gb")
-        self.storageQuotaGB = savedQuota > 0 ? savedQuota : 10.0 // Default 10GB limit
-        
+        self.storageQuotaGB = savedQuota > 0 ? savedQuota : 10.0
+
         super.init()
-        
-        // Ensure offline directory exists
+
         try? FileManager.default.createDirectory(at: offlineDir, withIntermediateDirectories: true)
-        
-        // Setup background download session configuration
-        let config = URLSessionConfiguration.background(withIdentifier: "com.downtify.ios.offline.downloads")
-        config.isDiscretionary = false
-        config.sessionSendsLaunchEvents = true
-        self.downloadSession = URLSession(configuration: config, delegate: self, delegateQueue: nil)
-        
         loadMetadata()
         recalculateStorage()
     }
-    
+
     // MARK: - Local Querying
-    
+
     public func isDownloaded(trackId: String) -> Bool {
         downloadedTrackIds.contains(trackId)
     }
-    
+
     public func isDownloading(trackId: String) -> Bool {
         if let state = activeDownloads[trackId]?.state {
             return state == .downloading || state == .queued
         }
         return false
     }
-    
+
     public func progress(for trackId: String) -> Double {
         activeDownloads[trackId]?.progress ?? (isDownloaded(trackId: trackId) ? 1.0 : 0.0)
     }
-    
-    /// Returns local file URL if file exists and is healthy; otherwise nil.
+
+    /// Returns local file URL if the file exists; otherwise nil.
     public func localAudioUrl(for trackId: String) -> URL? {
         guard let info = metadataRegistry[trackId] else { return nil }
         let fileUrl = offlineDir.appendingPathComponent(info.fileName)
-        if FileManager.default.fileExists(atPath: fileUrl.path) {
-            return fileUrl
-        }
-        return nil
+        return FileManager.default.fileExists(atPath: fileUrl.path) ? fileUrl : nil
     }
-    
+
     /// Returns local cover artwork URL if available.
     public func localCoverUrl(for trackId: String) -> URL? {
         let coverUrl = offlineDir.appendingPathComponent("\(trackId).artwork")
-        if FileManager.default.fileExists(atPath: coverUrl.path) {
-            return coverUrl
-        }
-        return nil
+        return FileManager.default.fileExists(atPath: coverUrl.path) ? coverUrl : nil
     }
-    
+
     // MARK: - Download Operations
-    
+
     public func downloadTrack(track: Track) {
         guard !isDownloaded(trackId: track.id) && !isDownloading(trackId: track.id) else { return }
-        
+
         // Storage quota guard
-        let quotaBytes = Int64(storageQuotaGB * 1024 * 1024 * 1024)
+        let quotaBytes = Int64(storageQuotaGB * 1_073_741_824)
         if storageQuotaGB > 0 && totalAudioBytes + track.size > quotaBytes {
             print("[Offline] Storage quota exceeded. Cannot download track \(track.title)")
             return
         }
-        
+
         guard let streamUrl = DowntifyAPI.shared.streamUrl(trackId: track.id),
-              let token = KeychainSessionStore.shared.session?.token else { return }
-        
+              let token = KeychainSessionStore.shared.session?.token else {
+            print("[Offline] Missing stream URL or auth token for track \(track.id)")
+            return
+        }
+
         var request = URLRequest(url: streamUrl)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        let task = downloadSession.downloadTask(with: request)
-        taskToTrackMap[task.taskIdentifier] = track.id
-        
+
         let ext = (track.file as NSString).pathExtension.lowercased()
-        let cleanExt = ext.isEmpty ? "audio" : ext
+        let cleanExt = ext.isEmpty ? "mp3" : ext
         let localFileName = "\(track.id).\(cleanExt)"
-        
+
         let info = OfflineTrackInfo(
             trackId: track.id,
             title: track.displayTitle,
@@ -157,31 +148,102 @@ public final class OfflineDownloadManager: NSObject, ObservableObject {
             codec: track.codec
         )
         metadataRegistry[track.id] = info
-        
         activeDownloads[track.id] = DownloadProgress(progress: 0, bytesWritten: 0, totalBytes: track.size, state: .queued)
-        task.resume()
-        
-        // Also download cover art if available
+
+        let destUrl = offlineDir.appendingPathComponent(localFileName)
+        let session = foregroundSession
+
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let self else { return }
+            await MainActor.run {
+                self.activeDownloads[track.id] = DownloadProgress(
+                    progress: 0, bytesWritten: 0, totalBytes: track.size, state: .downloading
+                )
+            }
+
+            do {
+                // Use streaming bytes API for real-time progress
+                let (asyncBytes, response) = try await session.bytes(for: request)
+                let expectedLength = response.expectedContentLength > 0
+                    ? response.expectedContentLength
+                    : track.size
+
+                // Stream into a temporary file
+                let tempFile = FileManager.default.temporaryDirectory
+                    .appendingPathComponent(UUID().uuidString)
+                guard FileManager.default.createFile(atPath: tempFile.path, contents: nil) else {
+                    throw URLError(.cannotCreateFile)
+                }
+                let handle = try FileHandle(forWritingTo: tempFile)
+                var written: Int64 = 0
+
+                for try await byte in asyncBytes {
+                    handle.write(Data([byte]))
+                    written += 1
+
+                    // Update progress every 64 KB
+                    if written % 65_536 == 0 {
+                        let fraction = expectedLength > 0 ? Double(written) / Double(expectedLength) : 0
+                        await MainActor.run {
+                            self.activeDownloads[track.id] = DownloadProgress(
+                                progress: fraction,
+                                bytesWritten: written,
+                                totalBytes: expectedLength,
+                                state: .downloading
+                            )
+                        }
+                    }
+                }
+                try handle.close()
+
+                // Move temp → destination
+                try? FileManager.default.removeItem(at: destUrl)
+                try FileManager.default.moveItem(at: tempFile, to: destUrl)
+
+                await MainActor.run {
+                    self.downloadedTrackIds.insert(track.id)
+                    self.activeDownloads[track.id] = DownloadProgress(
+                        progress: 1.0,
+                        bytesWritten: written,
+                        totalBytes: expectedLength,
+                        state: .completed
+                    )
+                    self.saveMetadata()
+                    self.recalculateStorage()
+                    print("[Offline] ✅ Downloaded: \(track.displayTitle) → \(localFileName)")
+                }
+            } catch {
+                try? FileManager.default.removeItem(at: destUrl)
+                await MainActor.run {
+                    self.activeDownloads[track.id] = DownloadProgress(
+                        progress: 0, state: .failed(error.localizedDescription)
+                    )
+                    print("[Offline] ❌ Download failed for '\(track.displayTitle)': \(error.localizedDescription)")
+                }
+            }
+        }
+
+        // Also download cover art
         downloadCoverArtwork(for: track)
     }
-    
+
     public func downloadAlbum(album: Album) {
         for track in album.tracks {
             downloadTrack(track: track)
         }
     }
-    
+
     public func downloadPlaylist(tracks: [Track]) {
         for track in tracks {
             downloadTrack(track: track)
         }
     }
-    
+
     private func downloadCoverArtwork(for track: Track) {
         guard track.hasCover, let url = DowntifyAPI.shared.coverUrl(trackId: track.id, size: 400) else { return }
         let coverFile = offlineDir.appendingPathComponent("\(track.id).artwork")
         if FileManager.default.fileExists(atPath: coverFile.path) { return }
-        
+
         let token = KeychainSessionStore.shared.session?.token
         Task.detached(priority: .background) {
             var req = URLRequest(url: url)
@@ -191,37 +253,31 @@ public final class OfflineDownloadManager: NSObject, ObservableObject {
             }
         }
     }
-    
+
     // MARK: - Removal & Deletion
-    
+
     public func removeDownload(trackId: String) {
         if let info = metadataRegistry[trackId] {
             let fileUrl = offlineDir.appendingPathComponent(info.fileName)
             try? FileManager.default.removeItem(at: fileUrl)
-            
             let coverUrl = offlineDir.appendingPathComponent("\(trackId).artwork")
             try? FileManager.default.removeItem(at: coverUrl)
-            
             metadataRegistry.removeValue(forKey: trackId)
-            downloadedTrackIds.remove(trackId)
-            activeDownloads.removeValue(forKey: trackId)
-            saveMetadata()
-            recalculateStorage()
         }
+        downloadedTrackIds.remove(trackId)
+        activeDownloads.removeValue(forKey: trackId)
+        saveMetadata()
+        recalculateStorage()
     }
-    
+
     public func removeAlbumDownloads(album: Album) {
-        for track in album.tracks {
-            removeDownload(trackId: track.id)
-        }
+        for track in album.tracks { removeDownload(trackId: track.id) }
     }
-    
+
     public func removePlaylistDownloads(tracks: [Track]) {
-        for track in tracks {
-            removeDownload(trackId: track.id)
-        }
+        for track in tracks { removeDownload(trackId: track.id) }
     }
-    
+
     public func clearAllDownloads() {
         try? FileManager.default.removeItem(at: offlineDir)
         try? FileManager.default.createDirectory(at: offlineDir, withIntermediateDirectories: true)
@@ -231,21 +287,19 @@ public final class OfflineDownloadManager: NSObject, ObservableObject {
         saveMetadata()
         recalculateStorage()
     }
-    
+
     public func clearArtworkCache() {
-        // Clear in-memory & URLCache
         URLCache.shared.removeAllCachedResponses()
         let cacheDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
         try? FileManager.default.removeItem(at: cacheDir)
         try? FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true)
     }
-    
-    // MARK: - Storage Metadata Management
-    
+
+    // MARK: - Metadata & Storage
+
     private func loadMetadata() {
         guard let data = try? Data(contentsOf: metadataFile),
               let list = try? JSONDecoder().decode([OfflineTrackInfo].self, from: data) else { return }
-        
         for item in list {
             let fileUrl = offlineDir.appendingPathComponent(item.fileName)
             if FileManager.default.fileExists(atPath: fileUrl.path) {
@@ -254,16 +308,18 @@ public final class OfflineDownloadManager: NSObject, ObservableObject {
             }
         }
     }
-    
+
     private func saveMetadata() {
         let list = Array(metadataRegistry.values)
         if let data = try? JSONEncoder().encode(list) {
             try? data.write(to: metadataFile, options: .atomic)
         }
     }
-    
+
     public func recalculateStorage() {
-        guard let contents = try? FileManager.default.contentsOfDirectory(at: offlineDir, includingPropertiesForKeys: [.fileSizeKey]) else {
+        guard let contents = try? FileManager.default.contentsOfDirectory(
+            at: offlineDir, includingPropertiesForKeys: [.fileSizeKey]
+        ) else {
             totalAudioBytes = 0
             return
         }
@@ -273,9 +329,9 @@ public final class OfflineDownloadManager: NSObject, ObservableObject {
                 total += Int64(size)
             }
         }
-        self.totalAudioBytes = total
+        totalAudioBytes = total
     }
-    
+
     public func systemFreeStorageBytes() -> Int64 {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         if let values = try? docs.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]),
@@ -284,10 +340,12 @@ public final class OfflineDownloadManager: NSObject, ObservableObject {
         }
         return 0
     }
-    
+
     public func totalCacheBytes() -> Int64 {
         let cacheDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
-        guard let contents = try? FileManager.default.contentsOfDirectory(at: cacheDir, includingPropertiesForKeys: [.fileSizeKey]) else {
+        guard let contents = try? FileManager.default.contentsOfDirectory(
+            at: cacheDir, includingPropertiesForKeys: [.fileSizeKey]
+        ) else {
             return Int64(URLCache.shared.currentDiskUsage)
         }
         var total: Int64 = 0
@@ -297,59 +355,5 @@ public final class OfflineDownloadManager: NSObject, ObservableObject {
             }
         }
         return total + Int64(URLCache.shared.currentDiskUsage)
-    }
-}
-
-// MARK: - URLSessionDownloadDelegate
-
-extension OfflineDownloadManager: URLSessionDownloadDelegate {
-    public nonisolated func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        let taskId = downloadTask.taskIdentifier
-        Task { @MainActor in
-            guard let trackId = self.taskToTrackMap[taskId],
-                  let info = self.metadataRegistry[trackId] else { return }
-            
-            let destUrl = self.offlineDir.appendingPathComponent(info.fileName)
-            try? FileManager.default.removeItem(at: destUrl)
-            do {
-                try FileManager.default.moveItem(at: location, to: destUrl)
-                self.downloadedTrackIds.insert(trackId)
-                self.activeDownloads[trackId] = DownloadProgress(progress: 1.0, state: .completed)
-                self.saveMetadata()
-                self.recalculateStorage()
-                print("[Offline] Successfully downloaded track: \(info.title)")
-            } catch {
-                self.activeDownloads[trackId] = DownloadProgress(progress: 0, state: .failed(error.localizedDescription))
-                print("[Offline] Failed to move downloaded file: \(error)")
-            }
-            self.taskToTrackMap.removeValue(forKey: taskId)
-        }
-    }
-    
-    public nonisolated func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-        let taskId = downloadTask.taskIdentifier
-        let fraction = totalBytesExpectedToWrite > 0 ? Double(totalBytesWritten) / Double(totalBytesExpectedToWrite) : 0
-        
-        Task { @MainActor in
-            guard let trackId = self.taskToTrackMap[taskId] else { return }
-            self.activeDownloads[trackId] = DownloadProgress(
-                progress: fraction,
-                bytesWritten: totalBytesWritten,
-                totalBytes: totalBytesExpectedToWrite,
-                state: .downloading
-            )
-        }
-    }
-    
-    public nonisolated func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        let taskId = task.taskIdentifier
-        if let error = error {
-            Task { @MainActor in
-                guard let trackId = self.taskToTrackMap[taskId] else { return }
-                self.activeDownloads[trackId] = DownloadProgress(progress: 0, state: .failed(error.localizedDescription))
-                self.taskToTrackMap.removeValue(forKey: taskId)
-                print("[Offline] Download failed for track \(trackId): \(error)")
-            }
-        }
     }
 }
