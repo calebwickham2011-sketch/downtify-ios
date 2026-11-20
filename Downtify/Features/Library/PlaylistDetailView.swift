@@ -3,6 +3,7 @@ import SwiftUI
 /// Displays tracks for a playlist with offline download capabilities and playback controls.
 public struct PlaylistDetailView: View {
     public let playlist: Playlist
+    @Environment(\.dismiss) private var dismiss
     @ObservedObject private var player = AudioPlayerManager.shared
     @ObservedObject private var library = LibraryService.shared
     @ObservedObject private var downloadManager = OfflineDownloadManager.shared
@@ -198,6 +199,20 @@ public struct PlaylistDetailView: View {
         .background(DowntifyColor.backgroundDark.ignoresSafeArea())
         .navigationTitle(playlist.title)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(DowntifyColor.primary)
+                        .frame(width: 36, height: 36, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Back")
+            }
+        }
         .confirmationDialog(
             "Download Playlist",
             isPresented: $showDownloadConfirm,

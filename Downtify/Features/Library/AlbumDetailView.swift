@@ -3,6 +3,7 @@ import SwiftUI
 /// Displays all tracks in an album, starts playback, and manages offline downloads.
 public struct AlbumDetailView: View {
     public let album: Album
+    @Environment(\.dismiss) private var dismiss
     @ObservedObject private var player = AudioPlayerManager.shared
     @ObservedObject private var library = LibraryService.shared
     @ObservedObject private var downloadManager = OfflineDownloadManager.shared
@@ -200,6 +201,20 @@ public struct AlbumDetailView: View {
         .background(DowntifyColor.backgroundDark.ignoresSafeArea())
         .navigationTitle(album.title)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(DowntifyColor.primary)
+                        .frame(width: 36, height: 36, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Back")
+            }
+        }
         .confirmationDialog(
             "Download Album",
             isPresented: $showDownloadConfirm,
