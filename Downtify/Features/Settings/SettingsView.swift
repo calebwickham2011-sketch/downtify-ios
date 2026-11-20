@@ -112,6 +112,23 @@ public struct SettingsView: View {
                     }
                 }
                 
+                // Library Maintenance
+                Section("Maintenance") {
+                    NavigationLink(destination: TrashView()) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Music Trash")
+                                    .font(DowntifyFont.body)
+                                    .foregroundColor(DowntifyColor.textPrimary)
+                                Text("View and restore soft-deleted tracks")
+                                    .font(DowntifyFont.caption)
+                                    .foregroundColor(DowntifyColor.textSecondary)
+                            }
+                            Spacer()
+                        }
+                    }
+                }
+                
                 // About
                 Section("About Downtify") {
                     HStack {

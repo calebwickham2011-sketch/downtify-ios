@@ -154,6 +154,10 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
         }
     }
 
+    public func setPlaybackRate(_ rate: Float) {
+        player.rate = rate
+    }
+
     public func toggleShuffle() {
         isShuffled.toggle()
         if isShuffled, let current = currentTrack {
@@ -322,6 +326,7 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
                 if !secs.isNaN {
                     self.currentTime = secs
                     self.listenTracker.tick(elapsed: secs, duration: self.duration)
+                    EpisodeProgressTracker.shared.tick(positionSeconds: secs)
                 }
             }
         }
