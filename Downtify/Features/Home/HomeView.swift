@@ -4,6 +4,7 @@ public struct HomeView: View {
     @ObservedObject var theme = ThemeManager.shared
     @ObservedObject var library = LibraryService.shared
     @ObservedObject var sessionStore = KeychainSessionStore.shared
+    @State private var showSettings = false
     
     public init() {}
     
@@ -29,6 +30,15 @@ public struct HomeView: View {
                         if library.isLoading {
                             ProgressView()
                                 .tint(DowntifyColor.primary)
+                                .padding(.trailing, 8)
+                        }
+                        
+                        Button(action: { showSettings = true }) {
+                            Image(systemName: DowntifyIcons.settings)
+                                .font(.system(size: 19))
+                                .foregroundColor(DowntifyColor.textPrimary)
+                                .padding(10)
+                                .background(Circle().fill(DowntifyColor.surfaceRaised))
                         }
                     }
                     .padding(.horizontal, 16)
@@ -171,6 +181,9 @@ public struct HomeView: View {
                         await library.refreshLibrary()
                     }
                 }
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
             }
         }
     }

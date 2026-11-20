@@ -4,6 +4,7 @@ public struct LibraryView: View {
     @ObservedObject var theme = ThemeManager.shared
     @ObservedObject var library = LibraryService.shared
     @State private var selectedFilter = "All"
+    @State private var showSettings = false
     let filters = ["All", "Playlists", "Albums", "Artists"]
     
     public init() {}
@@ -170,6 +171,17 @@ public struct LibraryView: View {
             }
             .background(theme.currentBackground.ignoresSafeArea())
             .navigationTitle("Your Library")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: { showSettings = true }) {
+                        Image(systemName: DowntifyIcons.settings)
+                            .foregroundColor(DowntifyColor.textPrimary)
+                    }
+                }
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+            }
             .refreshable {
                 await library.refreshLibrary()
             }

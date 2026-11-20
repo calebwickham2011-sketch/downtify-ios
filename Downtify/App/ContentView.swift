@@ -10,7 +10,6 @@ public struct ContentView: View {
     @ObservedObject var theme = ThemeManager.shared
     @ObservedObject private var player = AudioPlayerManager.shared
     @State private var selectedTab: TabDestination = .home
-    @State private var showSettings = false
     @State private var isNowPlayingExpanded = false
 
     public init() {}
@@ -70,17 +69,6 @@ public struct ContentView: View {
                 ))
                 .zIndex(100)
             }
-        }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(action: { showSettings = true }) {
-                    Image(systemName: DowntifyIcons.settings)
-                        .foregroundColor(DowntifyColor.textPrimary)
-                }
-            }
-        }
-        .sheet(isPresented: $showSettings) {
-            SettingsView()
         }
         .preferredColorScheme(.dark)
         .animation(.spring(response: 0.35), value: player.currentTrack?.id)

@@ -10,6 +10,7 @@ public struct SearchView: View {
     @State private var catalogResults = CatalogSearchResult()
     @State private var isSearchingCatalog = false
     @State private var searchTask: Task<Void, Never>?
+    @State private var showSettings = false
     
     let filters = ["All", "Tracks", "Albums", "Artists", "Playlists"]
     
@@ -290,6 +291,17 @@ public struct SearchView: View {
             }
             .background(theme.currentBackground.ignoresSafeArea())
             .navigationTitle("Search")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: { showSettings = true }) {
+                        Image(systemName: DowntifyIcons.settings)
+                            .foregroundColor(DowntifyColor.textPrimary)
+                    }
+                }
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+            }
         }
     }
     
