@@ -32,7 +32,7 @@ public struct ContentView: View {
 
                 LibraryView()
                     .tabItem {
-                        Label("Your Library", systemImage: selectedTab == .library ? DowntifyIcons.library : DowntifyIcons.libraryOutline)
+                        Label("Library", systemImage: selectedTab == .library ? DowntifyIcons.library : DowntifyIcons.libraryOutline)
                     }
                     .tag(TabDestination.library)
             }
