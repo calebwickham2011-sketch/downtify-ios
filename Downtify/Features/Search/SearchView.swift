@@ -11,6 +11,8 @@ public struct SearchView: View {
     @State private var isSearchingCatalog = false
     @State private var searchTask: Task<Void, Never>?
     @State private var showSettings = false
+    @State private var actionNotification: String? = nil
+    @State private var downloadingIds: Set<String> = []
     
     let filters = ["All", "Tracks", "Albums", "Artists", "Playlists"]
     
@@ -31,10 +33,25 @@ public struct SearchView: View {
     
     // MARK: - Local Filtered Results
     
+    /// Returns tracks whose title or artist matches the search terms.
+    /// Does NOT match tracks simply because their album matches the query!
+    /// Sorted by title match relevance (exact match first, prefix, then alphabetical), NOT by album!
     private var matchingTracks: [Track] {
         guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return [] }
-        return library.tracks.filter {
-            TextSearch.matches(query: query, fields: [$0.title, $0.artist, $0.album, $0.albumArtist])
+        let cleanQuery = TextSearch.normalize(query)
+        let filtered = library.tracks.filter {
+            TextSearch.matches(query: query, fields: [$0.displayTitle, $0.title, $0.artist] + $0.artists)
+        }
+        return filtered.sorted { t1, t2 in
+            let title1 = TextSearch.normalize(t1.displayTitle)
+            let title2 = TextSearch.normalize(t2.displayTitle)
+            let exact1 = title1 == cleanQuery
+            let exact2 = title2 == cleanQuery
+            if exact1 != exact2 { return exact1 }
+            let prefix1 = title1.hasPrefix(cleanQuery)
+            let prefix2 = title2.hasPrefix(cleanQuery)
+            if prefix1 != prefix2 { return prefix1 }
+            return title1.localizedCaseInsensitiveCompare(title2) == .orderedAscending
         }
     }
     
@@ -150,7 +167,7 @@ public struct SearchView: View {
                             // Library Tracks
                             if (selectedFilter == "All" || selectedFilter == "Tracks") && !matchingTracks.isEmpty {
                                 SearchSectionHeader(title: "Songs (\(matchingTracks.count))")
-                                ForEach(matchingTracks.prefix(selectedFilter == "All" ? 5 : 50)) { track in
+                                ForEach(matchingTracks.prefix(selectedFilter == "All" ? 5 : 100)) { track in
                                     SearchTrackRow(track: track, isCurrentlyPlaying: player.currentTrack?.id == track.id) {
                                         player.play(track: track, context: "Search: \(query)")
                                     }
@@ -244,38 +261,33 @@ public struct SearchView: View {
                                 .padding(.horizontal, 16)
                                 .padding(.top, 4)
                             } else if !catalogResults.songs.isEmpty || !catalogResults.albums.isEmpty {
+                                // Server Catalog Songs
                                 if !catalogResults.songs.isEmpty && (selectedFilter == "All" || selectedFilter == "Tracks") {
                                     SearchSectionHeader(title: "Server Catalog Songs")
                                     ForEach(catalogResults.songs) { remoteSong in
-                                        RemoteSongRow(song: remoteSong) {
-                                            let playable = Track(remote: remoteSong)
-                                            player.play(track: playable, context: "Catalog: \(query)")
+                                        RemoteSongRow(
+                                            song: remoteSong,
+                                            isDownloading: downloadingIds.contains(remoteSong.id),
+                                            isCurrentlyPlaying: player.currentTrack?.title == remoteSong.title
+                                        ) {
+                                            playAndDownload(song: remoteSong)
                                         }
                                         .padding(.horizontal, 16)
                                     }
                                 }
                                 
+                                // Server Catalog Albums
                                 if !catalogResults.albums.isEmpty && (selectedFilter == "All" || selectedFilter == "Albums") {
                                     SearchSectionHeader(title: "Server Catalog Albums")
                                     ScrollView(.horizontal, showsIndicators: false) {
                                         HStack(spacing: 12) {
                                             ForEach(catalogResults.albums) { remoteAlbum in
-                                                VStack(alignment: .leading, spacing: 6) {
-                                                    AuthenticatedArtworkImage(
-                                                        url: URL(string: remoteAlbum.coverUrl),
-                                                        size: 120,
-                                                        cornerRadius: DowntifyShape.coverRadius
-                                                    )
-                                                    Text(remoteAlbum.title)
-                                                        .font(DowntifyFont.cardTitle)
-                                                        .foregroundColor(DowntifyColor.textPrimary)
-                                                        .lineLimit(1)
-                                                    Text(remoteAlbum.artist)
-                                                        .font(DowntifyFont.caption)
-                                                        .foregroundColor(DowntifyColor.textSecondary)
-                                                        .lineLimit(1)
+                                                RemoteAlbumCard(
+                                                    album: remoteAlbum,
+                                                    isDownloading: downloadingIds.contains(remoteAlbum.id)
+                                                ) {
+                                                    playAndDownload(album: remoteAlbum)
                                                 }
-                                                .frame(width: 120)
                                             }
                                         }
                                         .padding(.horizontal, 16)
@@ -301,6 +313,112 @@ public struct SearchView: View {
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
+            }
+            .overlay(alignment: .bottom) {
+                if let notice = actionNotification {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .foregroundColor(DowntifyColor.primary)
+                        Text(notice)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.black.opacity(0.88))
+                    .clipShape(Capsule())
+                    .shadow(radius: 6)
+                    .padding(.bottom, 65)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .animation(.spring(response: 0.3), value: actionNotification)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Actions: Download & Play for Remote Items
+    
+    private func playAndDownload(song: RemoteSong) {
+        actionNotification = "Downloading & playing \(song.title)..."
+        downloadingIds.insert(song.id)
+        
+        Task {
+            // Warm cache and resolve videoId
+            let videoId = await DowntifyAPI.shared.resolveStreamVideoId(for: song)
+            await DowntifyAPI.shared.prefetchStream(videoId: videoId)
+            
+            let playable = Track(remote: song, streamVideoId: videoId)
+            if let coverUrl = URL(string: song.coverUrl), !song.coverUrl.isEmpty {
+                DowntifyAPI.shared.registerStreamCover(trackId: playable.id, url: coverUrl)
+            }
+            
+            await MainActor.run {
+                player.play(track: playable, context: "Search: \(song.title)")
+            }
+            
+            // Queue download on server in background
+            do {
+                try await DowntifyAPI.shared.downloadSongs([song])
+            } catch {
+                print("[Search] Download queue failed on server: \(error)")
+            }
+            
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            await MainActor.run {
+                if actionNotification == "Downloading & playing \(song.title)..." {
+                    actionNotification = nil
+                }
+            }
+        }
+    }
+    
+    private func playAndDownload(album: RemoteAlbum) {
+        actionNotification = "Downloading album '\(album.title)' & playing..."
+        downloadingIds.insert(album.id)
+        
+        Task {
+            do {
+                let tracks = try await DowntifyAPI.shared.downloadAlbum(album)
+                if let firstTrack = tracks.first {
+                    let videoId = await DowntifyAPI.shared.resolveStreamVideoId(for: firstTrack)
+                    await DowntifyAPI.shared.prefetchStream(videoId: videoId)
+                    
+                    let playable = Track(remote: firstTrack, streamVideoId: videoId)
+                    let albumArt = firstTrack.coverUrl.isEmpty ? album.coverUrl : firstTrack.coverUrl
+                    if let coverUrl = URL(string: albumArt), !albumArt.isEmpty {
+                        DowntifyAPI.shared.registerStreamCover(trackId: playable.id, url: coverUrl)
+                    }
+                    
+                    var queueTracks: [Track] = [playable]
+                    for other in tracks.dropFirst() {
+                        let vid = StreamVideo.videoId(of: other) ?? other.id
+                        let p = Track(remote: other, streamVideoId: vid)
+                        let art = other.coverUrl.isEmpty ? album.coverUrl : other.coverUrl
+                        if let cUrl = URL(string: art), !art.isEmpty {
+                            DowntifyAPI.shared.registerStreamCover(trackId: p.id, url: cUrl)
+                        }
+                        queueTracks.append(p)
+                    }
+                    
+                    await MainActor.run {
+                        player.play(queue: queueTracks, startingAt: 0, context: "Album: \(album.title)")
+                    }
+                } else {
+                    // If no tracks returned, search catalog for album tracks
+                    let searchRes = try? await DowntifyAPI.shared.searchCatalog(query: "\(album.artist) \(album.title)")
+                    if let first = searchRes?.songs.first {
+                        playAndDownload(song: first)
+                    }
+                }
+            } catch {
+                print("[Search] Download album failed: \(error)")
+            }
+            
+            try? await Task.sleep(nanoseconds: 3_500_000_000)
+            await MainActor.run {
+                if actionNotification == "Downloading album '\(album.title)' & playing..." {
+                    actionNotification = nil
+                }
             }
         }
     }
@@ -388,6 +506,8 @@ struct SearchTrackRow: View {
 
 struct RemoteSongRow: View {
     let song: RemoteSong
+    var isDownloading: Bool = false
+    var isCurrentlyPlaying: Bool = false
     let onTap: () -> Void
     
     var body: some View {
@@ -402,7 +522,7 @@ struct RemoteSongRow: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(song.title)
                         .font(DowntifyFont.body)
-                        .foregroundColor(DowntifyColor.textPrimary)
+                        .foregroundColor(isCurrentlyPlaying ? DowntifyColor.primary : DowntifyColor.textPrimary)
                         .lineLimit(1)
                     
                     HStack(spacing: 6) {
@@ -418,10 +538,70 @@ struct RemoteSongRow: View {
                 
                 Spacer()
                 
-                Image(systemName: "play.circle.fill")
-                    .foregroundColor(DowntifyColor.primary)
-                    .font(.system(size: 24))
+                if isDownloading {
+                    ProgressView()
+                        .tint(DowntifyColor.primary)
+                        .scaleEffect(0.85)
+                } else if isCurrentlyPlaying {
+                    Image(systemName: "speaker.wave.2.fill")
+                        .foregroundColor(DowntifyColor.primary)
+                        .font(.system(size: 18))
+                } else {
+                    Image(systemName: "arrow.down.circle.fill")
+                        .foregroundColor(DowntifyColor.primary)
+                        .font(.system(size: 22))
+                }
             }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct RemoteAlbumCard: View {
+    let album: RemoteAlbum
+    var isDownloading: Bool = false
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 6) {
+                ZStack(alignment: .bottomTrailing) {
+                    AuthenticatedArtworkImage(
+                        url: URL(string: album.coverUrl),
+                        size: 120,
+                        cornerRadius: DowntifyShape.coverRadius
+                    )
+                    
+                    // Download & play badge
+                    ZStack {
+                        Circle()
+                            .fill(Color.black.opacity(0.75))
+                            .frame(width: 28, height: 28)
+                        
+                        if isDownloading {
+                            ProgressView()
+                                .tint(DowntifyColor.primary)
+                                .scaleEffect(0.65)
+                        } else {
+                            Image(systemName: "arrow.down.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(DowntifyColor.primary)
+                        }
+                    }
+                    .padding(6)
+                }
+                
+                Text(album.title)
+                    .font(DowntifyFont.cardTitle)
+                    .foregroundColor(DowntifyColor.textPrimary)
+                    .lineLimit(1)
+                
+                Text(album.artist)
+                    .font(DowntifyFont.caption)
+                    .foregroundColor(DowntifyColor.textSecondary)
+                    .lineLimit(1)
+            }
+            .frame(width: 120)
         }
         .buttonStyle(.plain)
     }

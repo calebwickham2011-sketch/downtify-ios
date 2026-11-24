@@ -72,6 +72,7 @@ public final class ListenTracker {
     // MARK: - Submission
 
     private func submitListen(for track: Track) {
+        guard !track.id.hasPrefix("stream:"), !track.id.hasPrefix("podcast_") else { return }
         let event = ListenEvent(
             trackId: track.id,
             startedAt: Int64((sessionStart ?? Date()).timeIntervalSince1970 * 1000),
