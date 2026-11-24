@@ -1,6 +1,6 @@
 import Foundation
 
-public enum TrashState: String, Codable, Equatable {
+public enum TrashState: String, Codable, Equatable, Sendable {
     case pending = "pending"
     case moving = "moving"
     case trashed = "trashed"
@@ -26,7 +26,7 @@ public enum TrashState: String, Codable, Equatable {
 }
 
 /// One track in the server's music trash.
-public struct TrashItem: Identifiable, Equatable, Hashable {
+public struct TrashItem: Identifiable, Equatable, Hashable, Sendable {
     public let id: String
     public let file: String
     public let trackId: String
@@ -79,7 +79,7 @@ public struct TrashItem: Identifiable, Equatable, Hashable {
     }
 }
 
-public struct TrashCapability: Equatable {
+public struct TrashCapability: Equatable, Sendable {
     public let enabled: Bool
     public let canManage: Bool
     public let retentionDays: Int
@@ -91,7 +91,7 @@ public struct TrashCapability: Equatable {
     }
 }
 
-public struct TrashPage: Equatable {
+public struct TrashPage: Equatable, Sendable {
     public let items: [TrashItem]
     public let total: Int
     public let bytes: Int64

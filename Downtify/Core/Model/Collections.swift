@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Album: Identifiable, Equatable, Hashable {
+public struct Album: Identifiable, Equatable, Hashable, Sendable {
     public let id: String
     public let title: String
     public let artist: String
@@ -14,7 +14,7 @@ public struct Album: Identifiable, Equatable, Hashable {
     public var coverTrackId: String? { tracks.first(where: { $0.hasCover })?.id }
 }
 
-public struct Artist: Identifiable, Equatable, Hashable {
+public struct Artist: Identifiable, Equatable, Hashable, Sendable {
     public let id: String
     public let name: String
     public let albums: [Album]
@@ -25,7 +25,7 @@ public struct Artist: Identifiable, Equatable, Hashable {
     }
 }
 
-public struct Playlist: Identifiable, Equatable, Hashable {
+public struct Playlist: Identifiable, Equatable, Hashable, Sendable {
     public var id: String { name }
     public let name: String
     public let liked: Bool

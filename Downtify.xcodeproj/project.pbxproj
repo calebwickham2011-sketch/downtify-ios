@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		990000010000000000000002 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 990000010000000000000001 /* LaunchScreen.storyboard */; };
+		990000010000000000000004 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 990000010000000000000003 /* Localizable.xcstrings */; };
+		990000010000000000000006 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = 990000010000000000000005 /* license.txt */; };
 		08ECEE635C305779A749A36B /* PairingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2016DB0A4A157A0BDC29A06 /* PairingClient.swift */; };
 		0BD0EA67B07B5339827F479A /* Collections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C321B7C46D250B781C7B9E4 /* Collections.swift */; };
 		21E58F263D075D67B37F8A62 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0AE543895650B98D26544B /* HomeView.swift */; };
@@ -71,6 +74,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		990000010000000000000001 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		990000010000000000000003 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		990000010000000000000005 /* license.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = license.txt; sourceTree = "<group>"; };
 		0536EC8415605769A21DA41F /* DowntifyAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DowntifyAPI.swift; sourceTree = "<group>"; };
 		1D5FB0AF3D675A41A8C5B8F6 /* TrackEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackEntity.swift; sourceTree = "<group>"; };
 		23464E1E2778595FA551416A /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
@@ -194,6 +200,9 @@
 			children = (
 				4109470DCF3055239D3D7E25 /* Info.plist */,
 				BE10BFC635EF50E29B255B36 /* Assets.xcassets */,
+				990000010000000000000001 /* LaunchScreen.storyboard */,
+				990000010000000000000003 /* Localizable.xcstrings */,
+				990000010000000000000005 /* license.txt */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -466,6 +475,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				664169963FC752FB9DAB84A5 /* Assets.xcassets in Resources */,
+				990000010000000000000002 /* LaunchScreen.storyboard in Resources */,
+				990000010000000000000004 /* Localizable.xcstrings in Resources */,
+				990000010000000000000006 /* license.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -546,6 +558,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				STRING_CATALOG_COMPILER_GENERATE_SYMBOLS = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -561,7 +574,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.calebwickham.downtifyios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -674,6 +687,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				STRING_CATALOG_COMPILER_GENERATE_SYMBOLS = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -689,7 +703,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.calebwickham.downtifyios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;

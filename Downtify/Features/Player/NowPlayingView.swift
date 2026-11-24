@@ -485,17 +485,16 @@ public struct NowPlayingView: View {
             self.ambientBgColor = extracted.background
         } else {
             let token = KeychainSessionStore.shared.session?.token
-            Task.detached(priority: .background) {
+            let trackId = track.id
+            Task {
                 var request = URLRequest(url: url)
                 if let token { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
                 if let (data, _) = try? await URLSession.shared.data(for: request),
                    let image = UIImage(data: data) {
                     ArtworkCache.shared.set(image, for: url)
-                    let extracted = DominantColorExtractor.shared.extractColors(from: image, key: track.id)
-                    await MainActor.run {
-                        self.primaryColor = extracted.primary
-                        self.ambientBgColor = extracted.background
-                    }
+                    let extracted = DominantColorExtractor.shared.extractColors(from: image, key: trackId)
+                    self.primaryColor = extracted.primary
+                    self.ambientBgColor = extracted.background
                 }
             }
         }

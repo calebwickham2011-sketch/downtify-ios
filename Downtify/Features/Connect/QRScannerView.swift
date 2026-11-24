@@ -1,5 +1,5 @@
 import SwiftUI
-import AVFoundation
+@preconcurrency import AVFoundation
 
 public struct QRScannerView: UIViewControllerRepresentable {
     public let onScanned: (String) -> Void
@@ -22,6 +22,7 @@ public struct QRScannerView: UIViewControllerRepresentable {
         Coordinator(parent: self)
     }
     
+    @MainActor
     public class Coordinator: NSObject, ScannerViewControllerDelegate {
         let parent: QRScannerView
         init(parent: QRScannerView) {
@@ -36,6 +37,7 @@ public struct QRScannerView: UIViewControllerRepresentable {
     }
 }
 
+@MainActor
 public protocol ScannerViewControllerDelegate: AnyObject {
     func didScanCode(_ code: String)
     func didCancel()
@@ -62,18 +64,18 @@ public class ScannerViewController: UIViewController, AVCaptureMetadataOutputObj
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         hasScanned = false
-        if captureSession?.isRunning == false {
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                self?.captureSession?.startRunning()
+        if let session = captureSession, !session.isRunning {
+            Task.detached(priority: .userInitiated) {
+                session.startRunning()
             }
         }
     }
     
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        if captureSession?.isRunning == true {
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                self?.captureSession?.stopRunning()
+        if let session = captureSession, session.isRunning {
+            Task.detached(priority: .userInitiated) {
+                session.stopRunning()
             }
         }
     }
@@ -101,7 +103,7 @@ public class ScannerViewController: UIViewController, AVCaptureMetadataOutputObj
         self.captureSession = session
         self.previewLayer = preview
         
-        DispatchQueue.global(qos: .userInitiated).async {
+        Task.detached(priority: .userInitiated) {
             session.startRunning()
         }
     }
@@ -167,15 +169,17 @@ public class ScannerViewController: UIViewController, AVCaptureMetadataOutputObj
         delegate?.didCancel()
     }
     
-    public func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
-        guard !hasScanned,
-              let object = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
+    nonisolated public func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+        guard let object = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
               object.type == .qr,
               let stringVal = object.stringValue else {
             return
         }
-        hasScanned = true
-        AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
-        delegate?.didScanCode(stringVal)
+        Task { @MainActor in
+            guard !self.hasScanned else { return }
+            self.hasScanned = true
+            AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
+            self.delegate?.didScanCode(stringVal)
+        }
     }
 }

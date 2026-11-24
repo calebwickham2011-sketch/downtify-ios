@@ -1,7 +1,7 @@
 import Foundation
 import Network
 
-public struct DiscoveredServer: Identifiable, Equatable, Hashable {
+public struct DiscoveredServer: Identifiable, Equatable, Hashable, Sendable {
     public var id: String { serverId.isEmpty ? baseUrl : serverId }
     public let serviceName: String
     public let serverId: String

@@ -1,6 +1,6 @@
 import SwiftUI
 
-public class ArtworkCache {
+public final class ArtworkCache: @unchecked Sendable {
     public static let shared = ArtworkCache()
     private let cache = NSCache<NSURL, UIImage>()
     

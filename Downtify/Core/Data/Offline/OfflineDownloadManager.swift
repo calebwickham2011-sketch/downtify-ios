@@ -183,11 +183,12 @@ public final class OfflineDownloadManager: NSObject, ObservableObject {
 
                     // Update progress every 64 KB
                     if written % 65_536 == 0 {
-                        let fraction = expectedLength > 0 ? Double(written) / Double(expectedLength) : 0
+                        let currentWritten = written
+                        let fraction = expectedLength > 0 ? Double(currentWritten) / Double(expectedLength) : 0
                         await MainActor.run {
                             self.activeDownloads[track.id] = DownloadProgress(
                                 progress: fraction,
-                                bytesWritten: written,
+                                bytesWritten: currentWritten,
                                 totalBytes: expectedLength,
                                 state: .downloading
                             )
@@ -200,11 +201,12 @@ public final class OfflineDownloadManager: NSObject, ObservableObject {
                 try? FileManager.default.removeItem(at: destUrl)
                 try FileManager.default.moveItem(at: tempFile, to: destUrl)
 
+                let totalWritten = written
                 await MainActor.run {
                     self.downloadedTrackIds.insert(track.id)
                     self.activeDownloads[track.id] = DownloadProgress(
                         progress: 1.0,
-                        bytesWritten: written,
+                        bytesWritten: totalWritten,
                         totalBytes: expectedLength,
                         state: .completed
                     )

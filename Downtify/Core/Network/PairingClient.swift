@@ -1,7 +1,7 @@
 import Foundation
 import UIKit
 
-public enum PairingResult: Error {
+public enum PairingResult: Error, Sendable {
     case success(Session)
     case wrongCode
     case wrongPassword
@@ -12,7 +12,7 @@ public enum PairingResult: Error {
     case failure(String)
 }
 
-public class PairingClient {
+public final class PairingClient: @unchecked Sendable {
     public static let shared = PairingClient()
     
     private let session: URLSession = {

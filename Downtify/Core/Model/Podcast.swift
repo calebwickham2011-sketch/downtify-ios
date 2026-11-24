@@ -1,7 +1,7 @@
 import Foundation
 
 /// A subscribed podcast show on the Downtify server.
-public struct PodcastShow: Identifiable, Equatable, Hashable {
+public struct PodcastShow: Identifiable, Equatable, Hashable, Sendable {
     public let id: Int64
     public let name: String
     public let author: String
@@ -30,7 +30,7 @@ public struct PodcastShow: Identifiable, Equatable, Hashable {
 }
 
 /// An episode of a podcast show with playback position.
-public struct PodcastEpisode: Identifiable, Equatable, Hashable {
+public struct PodcastEpisode: Identifiable, Equatable, Hashable, Sendable {
     public let id: Int64
     public let showId: Int64
     public let title: String

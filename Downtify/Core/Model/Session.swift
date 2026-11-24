@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Session: Codable, Equatable, Hashable {
+public struct Session: Codable, Equatable, Hashable, Sendable {
     public let baseUrl: String
     public let serverId: String
     public let serverName: String
@@ -25,7 +25,7 @@ public struct Session: Codable, Equatable, Hashable {
     }
 }
 
-public enum SignOutReason: String, Codable {
+public enum SignOutReason: String, Codable, Sendable {
     case user
     case revoked
 }

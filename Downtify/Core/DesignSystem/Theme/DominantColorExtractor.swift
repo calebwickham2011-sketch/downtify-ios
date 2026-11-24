@@ -2,6 +2,7 @@ import UIKit
 import SwiftUI
 
 /// Extracts vibrant and background gradient colors from an artwork UIImage.
+@MainActor
 public final class DominantColorExtractor {
     public static let shared = DominantColorExtractor()
     

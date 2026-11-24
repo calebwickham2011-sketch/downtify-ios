@@ -14,6 +14,7 @@ private struct ListenEvent: Codable {
 ///   • At least 30 seconds OR 50% of track played → submit a listen.
 ///   • Deduplicates within the same playback session.
 ///   • Queues events that fail to send and retries on the next flush.
+@MainActor
 public final class ListenTracker {
 
     // MARK: - State
@@ -85,7 +86,7 @@ public final class ListenTracker {
         let eventsToSend = pendingEvents
         pendingEvents = []
 
-        Task.detached(priority: .background) { [weak self] in
+        Task { [weak self] in
             var failed: [ListenEvent] = []
             for event in eventsToSend {
                 do {
@@ -96,9 +97,7 @@ public final class ListenTracker {
                 }
             }
             if !failed.isEmpty {
-                await MainActor.run { [weak self] in
-                    self?.pendingEvents.insert(contentsOf: failed, at: 0)
-                }
+                self?.pendingEvents.insert(contentsOf: failed, at: 0)
             }
         }
     }
@@ -106,18 +105,15 @@ public final class ListenTracker {
     // MARK: - API Call
 
     private static func sendListen(event: ListenEvent) async throws {
-        // KeychainSessionStore is @MainActor – hop over to grab session details.
-        let sessionInfo: (baseUrl: String, token: String)? = await MainActor.run {
-            guard let s = KeychainSessionStore.shared.session else { return nil }
-            return (s.baseUrl, s.token)
-        }
-        guard let sessionInfo else { return }
-        let cleanBase = sessionInfo.baseUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard let s = KeychainSessionStore.shared.session else { return }
+        let baseUrl = s.baseUrl
+        let token = s.token
+        let cleanBase = baseUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         guard let url = URL(string: "\(cleanBase)/api/v1/listens") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(sessionInfo.token)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let payload: [String: Any] = [

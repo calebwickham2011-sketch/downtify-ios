@@ -1,7 +1,7 @@
 import Foundation
 
 /// A single timestamped line of lyrics.
-public struct LyricLine: Identifiable, Equatable, Hashable {
+public struct LyricLine: Identifiable, Equatable, Hashable, Sendable {
     public let id: String
     public let timeMs: Int64
     public let text: String
@@ -14,7 +14,7 @@ public struct LyricLine: Identifiable, Equatable, Hashable {
 }
 
 /// A track's lyrics: time-synced lines when an LRC is available, else plain text.
-public struct Lyrics: Equatable {
+public struct Lyrics: Equatable, Sendable {
     public let synced: [LyricLine]
     public let plain: String
     

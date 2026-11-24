@@ -1,7 +1,7 @@
 import Foundation
 
 /// An artist recommended from library seeds.
-public struct DiscoverArtist: Identifiable, Equatable, Hashable {
+public struct DiscoverArtist: Identifiable, Equatable, Hashable, Sendable {
     public var id: String { name }
     public let name: String
     public let pictureUrl: String
@@ -17,7 +17,7 @@ public struct DiscoverArtist: Identifiable, Equatable, Hashable {
 }
 
 /// An album suggested based on library listening habits.
-public struct DiscoverAlbum: Identifiable, Equatable, Hashable {
+public struct DiscoverAlbum: Identifiable, Equatable, Hashable, Sendable {
     public var id: String { url.isEmpty ? "\(artist)_\(name)" : url }
     public let name: String
     public let artist: String
@@ -47,7 +47,7 @@ public struct DiscoverAlbum: Identifiable, Equatable, Hashable {
 }
 
 /// A playlist suggested around a library or discovered artist.
-public struct DiscoverPlaylist: Identifiable, Equatable, Hashable {
+public struct DiscoverPlaylist: Identifiable, Equatable, Hashable, Sendable {
     public var id: String { url.isEmpty ? name : url }
     public let name: String
     public let owner: String
@@ -73,7 +73,7 @@ public struct DiscoverPlaylist: Identifiable, Equatable, Hashable {
     }
 }
 
-public struct DiscoverCollections: Equatable {
+public struct DiscoverCollections: Equatable, Sendable {
     public let albums: [DiscoverAlbum]
     public let moreAlbums: [DiscoverAlbum]
     public let playlists: [DiscoverPlaylist]

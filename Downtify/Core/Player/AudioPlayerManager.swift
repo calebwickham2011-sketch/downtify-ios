@@ -1,7 +1,7 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 import Combine
 import Foundation
-import MediaPlayer
+@preconcurrency import MediaPlayer
 import UIKit
 
 // MARK: - Player State
@@ -447,20 +447,18 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
         // Fetch cover art asynchronously with auth header
         if track.hasCover, let url = api.coverUrl(trackId: track.id, size: 600) {
             let token = KeychainSessionStore.shared.session?.token
-            Task.detached(priority: .background) { [weak self] in
+            let trackId = track.id
+            Task { [weak self] in
                 guard let self else { return }
                 var request = URLRequest(url: url)
                 if let token { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
                 if let (data, _) = try? await URLSession.shared.data(for: request),
                    let uiImage = UIImage(data: data) {
-                    let artwork = MPMediaItemArtwork(boundsSize: uiImage.size) { _ in uiImage }
-                    await MainActor.run {
-                        // Only set if same track is still playing
-                        if self.currentTrack?.id == track.id {
-                            info[MPMediaItemPropertyArtwork] = artwork
-                            info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime
-                            self.nowPlayingCenter.nowPlayingInfo = info
-                        }
+                    if self.currentTrack?.id == trackId {
+                        let artwork = MPMediaItemArtwork(boundsSize: uiImage.size) { _ in uiImage }
+                        info[MPMediaItemPropertyArtwork] = artwork
+                        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime
+                        self.nowPlayingCenter.nowPlayingInfo = info
                     }
                 }
             }
@@ -484,11 +482,6 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
     // MARK: - Deinit
 
     deinit {
-        if let token = timeObserverToken {
-            player.removeTimeObserver(token)
-        }
         NotificationCenter.default.removeObserver(self)
-        statusObserver?.invalidate()
-        durationObserver?.invalidate()
     }
 }

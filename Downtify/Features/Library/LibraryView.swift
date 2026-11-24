@@ -155,6 +155,7 @@ public struct LibraryMenuOption: Codable, Identifiable, Equatable {
 }
 
 // MARK: - Library Menu Preferences Store
+@MainActor
 public final class LibraryPreferences: ObservableObject {
     public static let shared = LibraryPreferences()
     private let key = "downtify_library_menu_options_v3"
