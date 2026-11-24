@@ -267,16 +267,23 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
     // MARK: - KVO & Notifications
 
     private func observePlayerItem(_ item: AVPlayerItem, for track: Track) {
+        // Cancel previous Combine subscriptions
+        playerItemObserver?.cancel()
         statusObserver?.invalidate()
+        statusObserver = nil
         durationObserver?.invalidate()
+        durationObserver = nil
 
-        statusObserver = item.observe(\.status, options: [.new]) { [weak self] item, _ in
-            Task { @MainActor [weak self] in
+        // Observe item status via Combine (thread-safe, no dangling KVO)
+        playerItemObserver = item.publisher(for: \.status)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] status in
                 guard let self else { return }
-                switch item.status {
+                switch status {
                 case .readyToPlay:
+                    let d = item.duration.seconds
                     self.state = .playing
-                    self.duration = item.duration.seconds.isNaN ? 0 : item.duration.seconds
+                    if !d.isNaN && d > 0 { self.duration = d }
                     self.updateNowPlayingMetadata(for: track)
                 case .failed:
                     let msg = item.error?.localizedDescription ?? "Playback error"
@@ -285,14 +292,6 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
                     break
                 }
             }
-        }
-
-        durationObserver = item.observe(\.duration, options: [.new]) { [weak self] item, _ in
-            Task { @MainActor [weak self] in
-                let d = item.duration.seconds
-                if !d.isNaN && d > 0 { self?.duration = d }
-            }
-        }
 
         // End of item notification
         NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: nil)
@@ -448,7 +447,7 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
         if track.hasCover, let url = api.coverUrl(trackId: track.id, size: 600) {
             let token = KeychainSessionStore.shared.session?.token
             let trackId = track.id
-            Task { [weak self] in
+            Task { @MainActor [weak self] in
                 guard let self else { return }
                 var request = URLRequest(url: url)
                 if let token { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
@@ -456,9 +455,10 @@ public final class AudioPlayerManager: NSObject, ObservableObject {
                    let uiImage = UIImage(data: data) {
                     if self.currentTrack?.id == trackId {
                         let artwork = MPMediaItemArtwork(boundsSize: uiImage.size) { _ in uiImage }
-                        info[MPMediaItemPropertyArtwork] = artwork
-                        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime
-                        self.nowPlayingCenter.nowPlayingInfo = info
+                        var updatedInfo = info
+                        updatedInfo[MPMediaItemPropertyArtwork] = artwork
+                        updatedInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = self.currentTime
+                        self.nowPlayingCenter.nowPlayingInfo = updatedInfo
                     }
                 }
             }
